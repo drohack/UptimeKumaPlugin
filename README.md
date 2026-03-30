@@ -103,21 +103,6 @@ Use the dropdown in the widget header to switch between time periods (1h, 12h, 2
 - This means no heartbeat data exists for the selected time period
 - Try a shorter time period, or wait for Uptime Kuma to collect more data
 
-## Building from Source
-
-To build the `.txz` package yourself:
-
-1. Clone this repository to your Unraid server (or any Linux system with Slackware `makepkg`)
-2. Replace `src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma/images/uptime-kuma.png` with a proper 48x48 icon
-3. Run the build script:
-   ```bash
-   cd src
-   bash mkpkg.sh
-   ```
-4. The package will be output to the `pkg/` directory
-5. Update the version in `uptime-kuma.plg` to match
-6. Commit and push to your GitHub repository
-
 ## Uninstalling
 
 1. Go to **Plugins** > **Installed Plugins** in the Unraid WebGUI

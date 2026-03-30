@@ -7,9 +7,9 @@
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
   <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
-  <!ENTITY pkgURL    "&gitURL;/pkg">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
   <!ENTITY cfgdir    "/boot/config/plugins/&name;">
+  <!ENTITY srcURL    "&gitURL;/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;"
@@ -26,26 +26,36 @@
 - Settings page for configuration
 </CHANGES>
 
-<!-- Pre-install cleanup: remove old package versions -->
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-#!/bin/bash
-# Remove old package if upgrading
-removepkg &name;-* 2>/dev/null
-
-# Remove plugin files from emhttp
-rm -rf &emhttp;
-
-echo "Plugin &name; has been removed."
-</INLINE>
+<!-- Download plugin files directly from GitHub -->
+<FILE Name="&emhttp;/UptimeKumaSettings.page">
+<URL>&srcURL;/UptimeKumaSettings.page</URL>
 </FILE>
 
-<!-- Download and install the plugin package -->
-<FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>&pkgURL;/&name;-&version;-x86_64-1.txz</URL>
+<FILE Name="&emhttp;/UptimeKumaDashboard.page">
+<URL>&srcURL;/UptimeKumaDashboard.page</URL>
 </FILE>
 
-<!-- Post-install: set up config and permissions -->
+<FILE Name="&emhttp;/UptimeKumaData.php">
+<URL>&srcURL;/UptimeKumaData.php</URL>
+</FILE>
+
+<FILE Name="&emhttp;/default.cfg">
+<URL>&srcURL;/default.cfg</URL>
+</FILE>
+
+<FILE Name="&emhttp;/images/icon.svg">
+<URL>&srcURL;/images/icon.svg</URL>
+</FILE>
+
+<FILE Name="&emhttp;/css/uptime-kuma.css">
+<URL>&srcURL;/css/uptime-kuma.css</URL>
+</FILE>
+
+<FILE Name="&emhttp;/scripts/uptime-kuma.js">
+<URL>&srcURL;/scripts/uptime-kuma.js</URL>
+</FILE>
+
+<!-- Post-install: set up config -->
 <FILE Run="/bin/bash">
 <INLINE>
 #!/bin/bash
@@ -60,6 +70,18 @@ if [ ! -f "&cfgdir;/uptime-kuma.cfg" ]; then
 fi
 
 echo "Plugin &name; version &version; installed."
+</INLINE>
+</FILE>
+
+<!-- Removal script -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+#!/bin/bash
+
+# Remove plugin files
+rm -rf &emhttp;
+
+echo "Plugin &name; has been removed."
 </INLINE>
 </FILE>
 
