@@ -6,15 +6,19 @@
 /* ---- Period Dropdown in Header ---- */
 
 .uk-period-dropdown {
-    font-size: 0.8rem;
-    padding: 2px 4px;
-    margin-right: 4px;
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
     border: 1px solid var(--table-border-color, #ccc);
     border-radius: 4px;
     background: var(--mild-background-color, #fff);
     color: inherit;
     cursor: pointer;
-    vertical-align: middle;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    appearance: menulist;
 }
 
 /* ---- Monitor List ---- */
@@ -49,7 +53,7 @@
 
 .uk-monitor-name {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -57,13 +61,13 @@
 
 .uk-monitor-uptime {
     font-family: monospace;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
     margin-left: 8px;
     padding: 2px 8px;
     border-radius: 10px;
-    color: #fff;
+    color: #000;
 }
 
 /* ---- Status Icons ---- */
@@ -78,7 +82,7 @@
 
 .uk-uptime-good { background-color: #5cdd8b; }
 .uk-uptime-warn { background-color: #f8a306; }
-.uk-uptime-bad { background-color: #dc3545; }
+.uk-uptime-bad { background-color: #dc3545; color: #fff; }
 
 /* ---- Heartbeat Bar ---- */
 
@@ -142,6 +146,14 @@
 
 .dark .uk-beat-empty {
     background-color: #484848;
+}
+
+.dark .uk-monitor-uptime {
+    color: #000;
+}
+
+.dark .uk-uptime-bad {
+    color: #fff;
 }
 
 /* ---- Settings Page ---- */
