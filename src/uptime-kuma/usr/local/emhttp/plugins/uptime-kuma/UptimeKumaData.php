@@ -180,5 +180,183 @@ if ($action === 'fetch') {
     exit;
 }
 
+// ---- Action: beats ----
+if ($action === 'beats') {
+    $period = $_GET['period'] ?? ($cfg['DEFAULTPERIOD'] ?? '24h');
+    $maxMonitors = (int)($cfg['MAXMONITORS'] ?? 5);
+
+    if (!isset($periods[$period])) {
+        echo json_encode(['error' => "Invalid period: {$period}"]);
+        exit;
+    }
+
+    // Bucket sizes in seconds for each period (~60-90 bars)
+    $bucketSizes = [
+        '1h'   => 60,       // 1 min buckets = 60 bars
+        '12h'  => 480,      // 8 min buckets = 90 bars
+        '24h'  => 960,      // 16 min buckets = 90 bars
+        '7d'   => 7200,     // 2 hour buckets = 84 bars
+        '30d'  => 28800,    // 8 hour buckets = 90 bars
+        '90d'  => 86400,    // 1 day buckets = 90 bars
+        '180d' => 172800,   // 2 day buckets = 90 bars
+    ];
+
+    $cutoffSeconds = $periods[$period];
+    $cutoffTime = gmdate('Y-m-d H:i:s', time() - $cutoffSeconds);
+    $bucketSize = $bucketSizes[$period];
+    $numBuckets = (int)ceil($cutoffSeconds / $bucketSize);
+
+    try {
+        $db = openKumaDb($dbpath);
+
+        // Get active monitors
+        $monSql = "
+            SELECT m.id, m.name, m.type, m.url, m.hostname, m.port,
+                (SELECT h.status FROM heartbeat h WHERE h.monitor_id = m.id ORDER BY h.time DESC LIMIT 1) AS current_status
+            FROM monitor m
+            WHERE m.active = 1
+            ORDER BY
+                CASE
+                    WHEN (SELECT h2.status FROM heartbeat h2 WHERE h2.monitor_id = m.id ORDER BY h2.time DESC LIMIT 1) = 0 THEN 0
+                    WHEN (SELECT h2.status FROM heartbeat h2 WHERE h2.monitor_id = m.id ORDER BY h2.time DESC LIMIT 1) = 3 THEN 1
+                    WHEN (SELECT h2.status FROM heartbeat h2 WHERE h2.monitor_id = m.id ORDER BY h2.time DESC LIMIT 1) = 2 THEN 2
+                    ELSE 3
+                END ASC,
+                m.name ASC
+            LIMIT :maxMonitors
+        ";
+        $monStmt = $db->prepare($monSql);
+        $monStmt->bindValue(':maxMonitors', $maxMonitors, SQLITE3_INTEGER);
+        $monResult = $monStmt->execute();
+
+        $monitors = [];
+        $monitorIds = [];
+        while ($row = $monResult->fetchArray(SQLITE3_ASSOC)) {
+            $monitors[$row['id']] = [
+                'id'     => (int)$row['id'],
+                'name'   => $row['name'],
+                'type'   => $row['type'],
+                'url'    => $row['url'] ?: $row['hostname'],
+                'status' => $row['current_status'] !== null ? (int)$row['current_status'] : null,
+                'beats'  => [],
+                'uptimePct' => null,
+            ];
+            $monitorIds[] = (int)$row['id'];
+        }
+        $monStmt->close();
+
+        if (!empty($monitorIds)) {
+            // Fetch heartbeats for all monitors in the period
+            $idList = implode(',', $monitorIds);
+            $beatSql = "
+                SELECT monitor_id, status, time, msg, ping
+                FROM heartbeat
+                WHERE monitor_id IN ({$idList})
+                  AND time >= :cutoff
+                ORDER BY time ASC
+            ";
+            $beatStmt = $db->prepare($beatSql);
+            $beatStmt->bindValue(':cutoff', $cutoffTime, SQLITE3_TEXT);
+            $beatResult = $beatStmt->execute();
+
+            // Collect raw beats per monitor
+            $rawBeats = [];
+            foreach ($monitorIds as $mid) {
+                $rawBeats[$mid] = [];
+            }
+            while ($beat = $beatResult->fetchArray(SQLITE3_ASSOC)) {
+                $mid = (int)$beat['monitor_id'];
+                $rawBeats[$mid][] = $beat;
+            }
+            $beatStmt->close();
+
+            // Bucket beats for each monitor
+            $now = time();
+            $periodStart = $now - $cutoffSeconds;
+
+            foreach ($monitorIds as $mid) {
+                $buckets = [];
+                // Initialize empty buckets
+                for ($i = 0; $i < $numBuckets; $i++) {
+                    $bucketStart = $periodStart + ($i * $bucketSize);
+                    $buckets[$i] = [
+                        'status' => null,
+                        'time'   => gmdate('Y-m-d H:i', $bucketStart),
+                        'msg'    => '',
+                        'ping'   => null,
+                        'count'  => 0,
+                    ];
+                }
+
+                $upCount = 0;
+                $totalCount = 0;
+
+                foreach ($rawBeats[$mid] as $beat) {
+                    $beatTime = strtotime($beat['time'] . ' UTC');
+                    $bucketIndex = (int)floor(($beatTime - $periodStart) / $bucketSize);
+                    if ($bucketIndex < 0) $bucketIndex = 0;
+                    if ($bucketIndex >= $numBuckets) $bucketIndex = $numBuckets - 1;
+
+                    $beatStatus = (int)$beat['status'];
+                    $totalCount++;
+                    if ($beatStatus === 1) $upCount++;
+
+                    $bucket = &$buckets[$bucketIndex];
+                    $bucket['count']++;
+
+                    // Worst status wins: down(0) > pending(2) > maintenance(3) > up(1)
+                    if ($bucket['status'] === null) {
+                        $bucket['status'] = $beatStatus;
+                        $bucket['msg'] = $beat['msg'] ?? '';
+                        $bucket['ping'] = $beat['ping'] !== null ? round((float)$beat['ping'], 1) : null;
+                    } elseif ($beatStatus === 0) {
+                        $bucket['status'] = 0;
+                        $bucket['msg'] = $beat['msg'] ?? '';
+                    } elseif ($beatStatus === 2 && $bucket['status'] !== 0) {
+                        $bucket['status'] = 2;
+                        $bucket['msg'] = $beat['msg'] ?? '';
+                    } elseif ($beatStatus === 3 && $bucket['status'] === 1) {
+                        $bucket['status'] = 3;
+                        $bucket['msg'] = $beat['msg'] ?? '';
+                    }
+                    // Update ping to latest in bucket
+                    if ($beat['ping'] !== null) {
+                        $bucket['ping'] = round((float)$beat['ping'], 1);
+                    }
+                    unset($bucket);
+                }
+
+                // Convert buckets to output format
+                $outputBeats = [];
+                foreach ($buckets as $bucket) {
+                    $outputBeats[] = [
+                        'status' => $bucket['status'],
+                        'time'   => $bucket['time'],
+                        'msg'    => $bucket['msg'],
+                        'ping'   => $bucket['ping'],
+                    ];
+                }
+
+                $monitors[$mid]['beats'] = $outputBeats;
+                $monitors[$mid]['uptimePct'] = $totalCount > 0
+                    ? round(100.0 * $upCount / $totalCount, 2)
+                    : null;
+            }
+        }
+
+        $totalMonitors = $db->querySingle("SELECT COUNT(*) FROM monitor WHERE active = 1");
+        $db->close();
+
+        echo json_encode([
+            'monitors'      => array_values($monitors),
+            'period'        => $period,
+            'totalMonitors' => (int)$totalMonitors,
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // Unknown action
 echo json_encode(['error' => "Unknown action: {$action}"]);

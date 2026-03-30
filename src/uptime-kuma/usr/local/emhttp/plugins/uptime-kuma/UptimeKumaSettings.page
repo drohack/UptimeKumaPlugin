@@ -1,4 +1,4 @@
-Menu="Settings"
+Menu="Utilities"
 Title="Uptime Kuma"
 Icon="icon.svg"
 ---
@@ -43,12 +43,12 @@ $cfg = parse_ini_file($cfgfile);
                     <td>Database Path:</td>
                     <td>
                         <input type="text" name="DBPATH" value="<?= htmlspecialchars($cfg['DBPATH'] ?? '') ?>"
-                               placeholder="/mnt/user/appdata/uptime-kuma/kuma.db" size="60">
+                               placeholder="/mnt/user/appdata/uptimekuma/kuma.db" size="60">
                         <button type="button" class="uk-btn" onclick="uptimeKumaTestConnection()">Test Connection</button>
                         <span id="uk-test-result"></span>
                         <p class="uk-help-text">
                             Path to Uptime Kuma's SQLite database file on the Unraid filesystem.<br>
-                            Typically found at <code>/mnt/user/appdata/uptime-kuma/kuma.db</code>.<br>
+                            Typically found at <code>/mnt/user/appdata/uptimekuma/kuma.db</code>.<br>
                             Check your Docker container's volume mappings if unsure.
                         </p>
                     </td>

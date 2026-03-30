@@ -51,7 +51,7 @@ The plugin needs the path to Uptime Kuma's SQLite database on the Unraid filesys
 4. Your database path is: `<host_path>/kuma.db`
 
 **Common paths:**
-- `/mnt/user/appdata/uptime-kuma/kuma.db` (default from Community Applications)
+- `/mnt/user/appdata/uptimekuma/kuma.db` (default from Community Applications)
 - `/mnt/cache/appdata/uptime-kuma/kuma.db` (if using cache drive)
 
 ### Step 2: Configure the Plugin
@@ -74,7 +74,7 @@ Use the dropdown in the widget header to switch between time periods (1h, 12h, 2
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Enable Dashboard Widget | Disabled | Show/hide the widget on the dashboard |
-| Database Path | `/mnt/user/appdata/uptime-kuma/kuma.db` | Path to Kuma's SQLite database |
+| Database Path | `/mnt/user/appdata/uptimekuma/kuma.db` | Path to Kuma's SQLite database |
 | Refresh Interval | 30 seconds | How often the widget refreshes data |
 | Max Monitors | 50 | Maximum number of monitors to display |
 | Default Time Period | 24 Hours | Default period for uptime % calculation |
@@ -92,8 +92,8 @@ Use the dropdown in the widget header to switch between time periods (1h, 12h, 2
 
 ### "Database file not readable"
 - The Unraid webserver (emhttp) needs read access to the file
-- Check permissions: `ls -la /mnt/user/appdata/uptime-kuma/kuma.db`
-- If needed: `chmod 644 /mnt/user/appdata/uptime-kuma/kuma.db`
+- Check permissions: `ls -la /mnt/user/appdata/uptimekuma/kuma.db`
+- If needed: `chmod 644 /mnt/user/appdata/uptimekuma/kuma.db`
 
 ### Widget shows "Loading..." indefinitely
 - Open browser dev tools (F12) and check the Console/Network tabs for errors

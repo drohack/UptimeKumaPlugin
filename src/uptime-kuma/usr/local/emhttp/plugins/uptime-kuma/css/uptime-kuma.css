@@ -1,171 +1,135 @@
 /*
  * Uptime Kuma Dashboard Widget - Styles
- * Matches Unraid's dark theme aesthetic.
+ * Uses Unraid CSS variables for theme compatibility.
  */
 
-/* ---- Dashboard Widget ---- */
+/* ---- Monitor List ---- */
 
-.uk-widget {
-    margin-bottom: 12px;
+#uk-monitors {
+    padding: 4px 10px 8px;
 }
 
-.uk-widget thead td {
-    white-space: nowrap;
+.uk-monitor {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--table-border-color, #e0e0e0);
 }
 
-.uk-title {
-    font-weight: bold;
-    margin-left: 4px;
-}
-
-/* Header summary badges */
-#uk-summary {
-    margin-left: 12px;
-    font-size: 0.85em;
-}
-
-.uk-summary-up {
-    color: #4caf50;
-    font-weight: bold;
-}
-
-.uk-summary-down {
-    color: #f44336;
-    font-weight: bold;
-    animation: uk-pulse 2s ease-in-out infinite;
-}
-
-.uk-summary-maint {
-    color: #2196f3;
-}
-
-.uk-summary-error {
-    color: #ff9800;
-}
-
-/* Header controls */
-.uk-header-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.uk-period-dropdown {
-    font-size: 0.8em;
-    padding: 1px 4px;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background: #3a3a3a;
-    color: #e0e0e0;
-    cursor: pointer;
-}
-
-.uk-period-dropdown:hover {
-    border-color: #888;
-}
-
-/* ---- Table Rows ---- */
-
-.uk-widget tbody tr {
-    border-bottom: 1px solid #333;
-}
-
-.uk-widget tbody tr:last-child {
+.uk-monitor:last-child {
     border-bottom: none;
 }
 
-/* Monitor name cell */
-.uk-cell-name {
-    padding: 4px 8px;
+/* Monitor header row: name left, uptime % right */
+.uk-monitor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.uk-monitor-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.uk-monitor-name {
+    font-weight: 600;
+    font-size: 0.9em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 300px;
 }
 
-/* Uptime percentage cell */
-.uk-cell-uptime {
-    padding: 4px 8px;
-    text-align: right;
-    white-space: nowrap;
+.uk-monitor-uptime {
     font-family: monospace;
-    font-size: 0.9em;
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 8px;
 }
 
 /* ---- Status Icons ---- */
 
-.uk-icon-up {
-    color: #4caf50;
-}
-
-.uk-icon-down {
-    color: #f44336;
-}
-
-.uk-icon-pending {
-    color: #ff9800;
-}
-
-.uk-icon-maint {
-    color: #2196f3;
-}
-
-.uk-icon-unknown {
-    color: #888;
-}
-
-/* ---- Row Highlighting ---- */
-
-.uk-row-down {
-    background-color: rgba(244, 67, 54, 0.08);
-}
-
-.uk-row-down .uk-cell-name {
-    font-weight: bold;
-}
-
-.uk-row-maint {
-    background-color: rgba(33, 150, 243, 0.05);
-}
+.uk-icon-up { color: #5cdd8b; }
+.uk-icon-down { color: #dc3545; }
+.uk-icon-pending { color: #f8a306; }
+.uk-icon-maint { color: #1747f5; }
+.uk-icon-unknown { color: #888; }
 
 /* ---- Uptime Percentage Colors ---- */
 
-.uk-uptime-good {
-    color: #4caf50;
+.uk-uptime-good { color: #5cdd8b; }
+.uk-uptime-warn { color: #f8a306; }
+.uk-uptime-bad { color: #dc3545; }
+
+/* ---- Heartbeat Bar ---- */
+
+.uk-heartbeat-bar {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    gap: 2px;
+    padding: 2px 0;
 }
 
-.uk-uptime-warn {
-    color: #ff9800;
+.uk-beat {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 24px;
+    border-radius: 50rem;
+    cursor: default;
+    transition: all ease-in-out 0.15s;
 }
 
-.uk-uptime-bad {
-    color: #f44336;
-    font-weight: bold;
+/* Beat status colors - matching Uptime Kuma */
+.uk-beat-up { background-color: #5cdd8b; }
+.uk-beat-down { background-color: #dc3545; }
+.uk-beat-pending { background-color: #f8a306; }
+.uk-beat-maint { background-color: #1747f5; }
+.uk-beat-empty { background-color: aliceblue; }
+
+/* Hover effect */
+.uk-beat:not(.uk-beat-empty):hover {
+    opacity: 0.8;
+    transform: scaleY(1.4);
+}
+
+/* ---- Header Controls ---- */
+
+.uk-period-dropdown {
+    font-size: 0.8em;
+    padding: 2px 4px;
+    margin-right: 8px;
+    border: 1px solid var(--table-border-color, #ccc);
+    border-radius: 3px;
+    background: var(--mild-background-color, #fff);
+    color: inherit;
+    cursor: pointer;
 }
 
 /* ---- State Messages ---- */
 
 .uk-loading {
-    padding: 12px 8px;
-    color: #888;
+    padding: 16px;
     text-align: center;
+    color: #888;
 }
 
 .uk-empty {
-    padding: 12px 8px;
-    color: #888;
+    padding: 16px;
     text-align: center;
+    color: #888;
     font-style: italic;
 }
 
 .uk-error {
-    padding: 8px;
-    color: #ff9800;
-    background-color: rgba(255, 152, 0, 0.08);
+    padding: 12px;
+    color: #f8a306;
 }
 
 .uk-overflow {
-    padding: 4px 8px;
+    padding: 8px 0;
     color: #888;
     font-style: italic;
     text-align: center;
@@ -173,10 +137,6 @@
 }
 
 /* ---- Settings Page ---- */
-
-#uk-settings .title {
-    margin-bottom: 16px;
-}
 
 .uk-btn {
     margin-left: 8px;
@@ -192,7 +152,7 @@
 }
 
 .uk-help-text code {
-    background: #333;
+    background: var(--mild-background-color, #f5f5f5);
     padding: 1px 4px;
     border-radius: 2px;
     font-size: 0.95em;
@@ -207,9 +167,8 @@
     font-size: 0.9em;
 }
 
-/* ---- Animation ---- */
+/* ---- Dark Mode ---- */
 
-@keyframes uk-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+.dark .uk-beat-empty {
+    background-color: #484848;
 }

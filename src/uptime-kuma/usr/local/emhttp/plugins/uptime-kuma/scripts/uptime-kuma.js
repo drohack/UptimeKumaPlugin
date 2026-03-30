@@ -1,9 +1,9 @@
 /**
  * Uptime Kuma Dashboard Widget - Frontend Logic
+ * Renders heartbeat bars with hover tooltips matching Uptime Kuma's style.
  */
 
 var ukConfig = {};
-var ukCollapsed = false;
 var ukPollingTimer = null;
 
 function uptimeKumaInit(config) {
@@ -13,10 +13,6 @@ function uptimeKumaInit(config) {
     var periodSelect = document.getElementById('uk-period-select');
     if (periodSelect && config.defaultPeriod) {
         periodSelect.value = config.defaultPeriod;
-    }
-
-    // Period dropdown change handler
-    if (periodSelect) {
         periodSelect.addEventListener('change', function () {
             ukFetch();
         });
@@ -38,7 +34,7 @@ function ukGetPeriod() {
 function ukFetch() {
     var period = ukGetPeriod();
     $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', {
-        action: 'fetch',
+        action: 'beats',
         period: period
     }, function (data) {
         if (data.error) {
@@ -52,121 +48,106 @@ function ukFetch() {
 }
 
 function ukRender(monitors, totalMonitors, period) {
-    var tbody = document.getElementById('uk-monitors');
+    var container = document.getElementById('uk-monitors');
     var summary = document.getElementById('uk-summary');
-    if (!tbody) return;
+    if (!container) return;
 
     // Calculate summary counts
-    var upCount = 0;
-    var downCount = 0;
-    var maintCount = 0;
-    var pendingCount = 0;
-
+    var upCount = 0, downCount = 0, maintCount = 0;
     monitors.forEach(function (m) {
         switch (m.status) {
             case 1: upCount++; break;
             case 0: downCount++; break;
-            case 2: pendingCount++; break;
             case 3: maintCount++; break;
         }
     });
 
-    // Update summary
+    // Update summary text
     if (summary) {
-        var html = '<span class="uk-summary-up">' + upCount + ' up</span>';
-        if (downCount > 0) {
-            html += ' <span class="uk-summary-down">' + downCount + ' down</span>';
-        }
-        if (maintCount > 0) {
-            html += ' <span class="uk-summary-maint">' + maintCount + ' maint</span>';
-        }
-        summary.innerHTML = html;
+        var parts = [];
+        parts.push(upCount + ' up');
+        if (downCount > 0) parts.push(downCount + ' down');
+        if (maintCount > 0) parts.push(maintCount + ' maint');
+        summary.textContent = parts.join(' / ');
     }
 
-    // Build rows
-    var rowsHtml = '';
-
+    // Build monitor rows
     if (monitors.length === 0) {
-        rowsHtml = '<tr><td colspan="3" class="uk-empty">No active monitors found.</td></tr>';
-    } else {
-        monitors.forEach(function (monitor) {
-            var statusClass, statusIcon;
-
-            switch (monitor.status) {
-                case 1:
-                    statusClass = 'uk-row-up';
-                    statusIcon = 'fa-check-circle uk-icon-up';
-                    break;
-                case 0:
-                    statusClass = 'uk-row-down';
-                    statusIcon = 'fa-times-circle uk-icon-down';
-                    break;
-                case 2:
-                    statusClass = 'uk-row-pending';
-                    statusIcon = 'fa-clock-o uk-icon-pending';
-                    break;
-                case 3:
-                    statusClass = 'uk-row-maint';
-                    statusIcon = 'fa-wrench uk-icon-maint';
-                    break;
-                default:
-                    statusClass = 'uk-row-unknown';
-                    statusIcon = 'fa-question-circle uk-icon-unknown';
-            }
-
-            // Uptime percentage display and color
-            var uptimeHtml = '-';
-            if (monitor.uptimePct !== null) {
-                var uptimeClass = 'uk-uptime-good';
-                if (monitor.uptimePct < 95) {
-                    uptimeClass = 'uk-uptime-bad';
-                } else if (monitor.uptimePct < 99) {
-                    uptimeClass = 'uk-uptime-warn';
-                }
-                uptimeHtml = '<span class="' + uptimeClass + '">' + monitor.uptimePct.toFixed(2) + '%</span>';
-            }
-
-            rowsHtml += '<tr class="' + statusClass + '">';
-            rowsHtml += '<td class="uk-cell-name"><i class="fa ' + statusIcon + '"></i> ' + ukEscapeHtml(monitor.name) + '</td>';
-            rowsHtml += '<td class="uk-cell-uptime">' + uptimeHtml + '</td>';
-            rowsHtml += '</tr>';
-        });
-
-        // Show overflow indicator
-        if (totalMonitors > monitors.length) {
-            var remaining = totalMonitors - monitors.length;
-            rowsHtml += '<tr><td colspan="3" class="uk-overflow">... and ' + remaining + ' more monitor' + (remaining !== 1 ? 's' : '') + '</td></tr>';
-        }
+        container.innerHTML = '<div class="uk-empty">No active monitors found.</div>';
+        return;
     }
 
-    tbody.innerHTML = rowsHtml;
+    var html = '';
+    monitors.forEach(function (monitor) {
+        var statusIcon, iconClass;
+        switch (monitor.status) {
+            case 1:  statusIcon = 'fa-check-circle'; iconClass = 'uk-icon-up'; break;
+            case 0:  statusIcon = 'fa-times-circle'; iconClass = 'uk-icon-down'; break;
+            case 2:  statusIcon = 'fa-clock-o'; iconClass = 'uk-icon-pending'; break;
+            case 3:  statusIcon = 'fa-wrench'; iconClass = 'uk-icon-maint'; break;
+            default: statusIcon = 'fa-question-circle'; iconClass = 'uk-icon-unknown'; break;
+        }
+
+        // Uptime percentage with color class
+        var uptimeHtml = '';
+        if (monitor.uptimePct !== null) {
+            var uptimeClass = 'uk-uptime-good';
+            if (monitor.uptimePct < 95) uptimeClass = 'uk-uptime-bad';
+            else if (monitor.uptimePct < 99) uptimeClass = 'uk-uptime-warn';
+            uptimeHtml = '<span class="uk-monitor-uptime ' + uptimeClass + '">' + monitor.uptimePct.toFixed(2) + '%</span>';
+        }
+
+        html += '<div class="uk-monitor">';
+        html += '<div class="uk-monitor-header">';
+        html += '<span class="uk-monitor-name-row">';
+        html += '<i class="fa ' + statusIcon + ' ' + iconClass + '"></i> ';
+        html += '<span class="uk-monitor-name">' + ukEscapeHtml(monitor.name) + '</span>';
+        html += '</span>';
+        html += uptimeHtml;
+        html += '</div>';
+
+        // Heartbeat bar
+        html += '<div class="uk-heartbeat-bar">';
+        if (monitor.beats && monitor.beats.length > 0) {
+            monitor.beats.forEach(function (beat) {
+                var beatClass = 'uk-beat-empty';
+                var tooltip = beat.time;
+
+                if (beat.status !== null) {
+                    switch (beat.status) {
+                        case 1:  beatClass = 'uk-beat-up'; tooltip += ' - Up'; break;
+                        case 0:  beatClass = 'uk-beat-down'; tooltip += ' - Down'; break;
+                        case 2:  beatClass = 'uk-beat-pending'; tooltip += ' - Pending'; break;
+                        case 3:  beatClass = 'uk-beat-maint'; tooltip += ' - Maintenance'; break;
+                    }
+                    if (beat.msg) tooltip += ' (' + beat.msg + ')';
+                    if (beat.ping !== null) tooltip += ' - ' + beat.ping + 'ms';
+                }
+
+                html += '<div class="uk-beat ' + beatClass + '" title="' + ukEscapeAttr(tooltip) + '"></div>';
+            });
+        }
+        html += '</div>';
+        html += '</div>';
+    });
+
+    // Overflow indicator
+    if (totalMonitors > monitors.length) {
+        var remaining = totalMonitors - monitors.length;
+        html += '<div class="uk-overflow">... and ' + remaining + ' more monitor' + (remaining !== 1 ? 's' : '') + '</div>';
+    }
+
+    container.innerHTML = html;
 }
 
 function ukRenderError(message) {
-    var tbody = document.getElementById('uk-monitors');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="3" class="uk-error"><i class="fa fa-exclamation-triangle"></i> ' + ukEscapeHtml(message) + '</td></tr>';
-
+    var container = document.getElementById('uk-monitors');
+    if (container) {
+        container.innerHTML = '<div class="uk-error"><i class="fa fa-exclamation-triangle"></i> ' + ukEscapeHtml(message) + '</div>';
+    }
     var summary = document.getElementById('uk-summary');
     if (summary) {
-        summary.innerHTML = '<span class="uk-summary-error">error</span>';
-    }
-}
-
-function ukToggleExpand(e) {
-    if (e) e.preventDefault();
-    var tbody = document.getElementById('uk-monitors');
-    var chevron = document.getElementById('uk-chevron');
-    if (!tbody || !chevron) return;
-
-    ukCollapsed = !ukCollapsed;
-    tbody.style.display = ukCollapsed ? 'none' : '';
-    chevron.className = ukCollapsed ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
-
-    // Also hide the period dropdown when collapsed
-    var periodSelect = document.getElementById('uk-period-select');
-    if (periodSelect) {
-        periodSelect.style.display = ukCollapsed ? 'none' : '';
+        summary.textContent = 'Error';
     }
 }
 
@@ -174,4 +155,8 @@ function ukEscapeHtml(text) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(text));
     return div.innerHTML;
+}
+
+function ukEscapeAttr(text) {
+    return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
