@@ -96,7 +96,7 @@ if ($action === 'fetch') {
     }
 
     $cutoffSeconds = $periods[$period];
-    $cutoffTime = gmdate('Y-m-d H:i:s', time() - $cutoffSeconds);
+    $cutoffTime = date('Y-m-d H:i:s', time() - $cutoffSeconds);
 
     try {
         $db = openKumaDb($dbpath);
@@ -202,7 +202,7 @@ if ($action === 'beats') {
     ];
 
     $cutoffSeconds = $periods[$period];
-    $cutoffTime = gmdate('Y-m-d H:i:s', time() - $cutoffSeconds);
+    $cutoffTime = date('Y-m-d H:i:s', time() - $cutoffSeconds);
     $bucketSize = $bucketSizes[$period];
     $numBuckets = (int)ceil($cutoffSeconds / $bucketSize);
 
@@ -281,7 +281,7 @@ if ($action === 'beats') {
                     $bucketStart = $periodStart + ($i * $bucketSize);
                     $buckets[$i] = [
                         'status' => null,
-                        'time'   => gmdate('Y-m-d H:i', $bucketStart),
+                        'time'   => date('Y-m-d H:i', $bucketStart),
                         'msg'    => '',
                         'ping'   => null,
                         'count'  => 0,

@@ -10,12 +10,13 @@ $cfg = parse_ini_file($cfgfile);
 if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
 ?>
 
+<table class="dashboard">
 <tbody title="Uptime Kuma" sort="<?=md5('Uptime Kuma')?>">
     <tr>
         <td>
             <span class='tile-header'>
                 <span class='tile-header-left'>
-                    <i class='icon-uptime-kuma f32'></i>
+                    <i class='fa fa-heartbeat f32'></i>
                     <div class='section'>
                         <h3 class='tile-header-main'>Uptime Kuma</h3>
                         <span id='uk-summary'>Loading...</span>
@@ -47,6 +48,7 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
         </td>
     </tr>
 </tbody>
+</table>
 
 <link rel='stylesheet' href='/plugins/uptime-kuma/css/uptime-kuma.css'>
 <script src='/plugins/uptime-kuma/scripts/uptime-kuma.js'></script>

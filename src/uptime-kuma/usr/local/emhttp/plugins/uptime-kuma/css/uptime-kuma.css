@@ -3,16 +3,6 @@
  * Relies on Unraid's native table.dashboard styles for tile container.
  */
 
-/* ---- Custom Plugin Icon ---- */
-
-.icon-uptime-kuma {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    background: url('/plugins/uptime-kuma/images/icon.svg') no-repeat center center;
-    background-size: contain;
-}
-
 /* ---- Period Dropdown in Header ---- */
 
 .uk-period-dropdown {
