@@ -1,0 +1,215 @@
+/*
+ * Uptime Kuma Dashboard Widget - Styles
+ * Matches Unraid's dark theme aesthetic.
+ */
+
+/* ---- Dashboard Widget ---- */
+
+.uk-widget {
+    margin-bottom: 12px;
+}
+
+.uk-widget thead td {
+    white-space: nowrap;
+}
+
+.uk-title {
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+/* Header summary badges */
+#uk-summary {
+    margin-left: 12px;
+    font-size: 0.85em;
+}
+
+.uk-summary-up {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.uk-summary-down {
+    color: #f44336;
+    font-weight: bold;
+    animation: uk-pulse 2s ease-in-out infinite;
+}
+
+.uk-summary-maint {
+    color: #2196f3;
+}
+
+.uk-summary-error {
+    color: #ff9800;
+}
+
+/* Header controls */
+.uk-header-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.uk-period-dropdown {
+    font-size: 0.8em;
+    padding: 1px 4px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #3a3a3a;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.uk-period-dropdown:hover {
+    border-color: #888;
+}
+
+/* ---- Table Rows ---- */
+
+.uk-widget tbody tr {
+    border-bottom: 1px solid #333;
+}
+
+.uk-widget tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Monitor name cell */
+.uk-cell-name {
+    padding: 4px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+/* Uptime percentage cell */
+.uk-cell-uptime {
+    padding: 4px 8px;
+    text-align: right;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* ---- Status Icons ---- */
+
+.uk-icon-up {
+    color: #4caf50;
+}
+
+.uk-icon-down {
+    color: #f44336;
+}
+
+.uk-icon-pending {
+    color: #ff9800;
+}
+
+.uk-icon-maint {
+    color: #2196f3;
+}
+
+.uk-icon-unknown {
+    color: #888;
+}
+
+/* ---- Row Highlighting ---- */
+
+.uk-row-down {
+    background-color: rgba(244, 67, 54, 0.08);
+}
+
+.uk-row-down .uk-cell-name {
+    font-weight: bold;
+}
+
+.uk-row-maint {
+    background-color: rgba(33, 150, 243, 0.05);
+}
+
+/* ---- Uptime Percentage Colors ---- */
+
+.uk-uptime-good {
+    color: #4caf50;
+}
+
+.uk-uptime-warn {
+    color: #ff9800;
+}
+
+.uk-uptime-bad {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* ---- State Messages ---- */
+
+.uk-loading {
+    padding: 12px 8px;
+    color: #888;
+    text-align: center;
+}
+
+.uk-empty {
+    padding: 12px 8px;
+    color: #888;
+    text-align: center;
+    font-style: italic;
+}
+
+.uk-error {
+    padding: 8px;
+    color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.08);
+}
+
+.uk-overflow {
+    padding: 4px 8px;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    font-size: 0.85em;
+}
+
+/* ---- Settings Page ---- */
+
+#uk-settings .title {
+    margin-bottom: 16px;
+}
+
+.uk-btn {
+    margin-left: 8px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.uk-help-text {
+    margin-top: 4px;
+    font-size: 0.85em;
+    color: #888;
+    line-height: 1.4;
+}
+
+.uk-help-text code {
+    background: #333;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 0.95em;
+}
+
+.uk-buttons {
+    margin-top: 16px;
+}
+
+#uk-test-result {
+    margin-left: 8px;
+    font-size: 0.9em;
+}
+
+/* ---- Animation ---- */
+
+@keyframes uk-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}

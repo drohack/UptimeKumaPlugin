@@ -1,0 +1,53 @@
+Menu="Dashboard"
+Icon="icon.svg"
+---
+<?php
+$plugin = "uptime-kuma";
+$cfgfile = "/boot/config/plugins/{$plugin}/uptime-kuma.cfg";
+
+if (!file_exists($cfgfile)) return;
+$cfg = parse_ini_file($cfgfile);
+if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
+?>
+
+<link rel="stylesheet" href="/plugins/uptime-kuma/css/uptime-kuma.css">
+
+<table class="dashboard uk-widget" id="tblUptimeKuma">
+    <thead>
+        <tr>
+            <td colspan="3">
+                <span class="left">
+                    <img src="/plugins/uptime-kuma/images/icon.svg" class="icon" width="16" height="16">
+                    <span class="uk-title">Uptime Kuma</span>
+                    <span id="uk-summary"></span>
+                </span>
+                <span class="right uk-header-controls">
+                    <select id="uk-period-select" class="uk-period-dropdown" title="Time period for uptime calculation">
+                        <option value="1h">1 Hour</option>
+                        <option value="12h">12 Hours</option>
+                        <option value="24h" selected>24 Hours</option>
+                        <option value="7d">7 Days</option>
+                        <option value="30d">30 Days</option>
+                        <option value="90d">90 Days</option>
+                        <option value="180d">180 Days</option>
+                    </select>
+                    <a href="#" onclick="ukToggleExpand(event)" title="Toggle">
+                        <i class="fa fa-chevron-up" id="uk-chevron"></i>
+                    </a>
+                </span>
+            </td>
+        </tr>
+    </thead>
+    <tbody id="uk-monitors">
+        <tr><td colspan="3" class="uk-loading"><i class="fa fa-spinner fa-spin"></i> Loading monitors...</td></tr>
+    </tbody>
+</table>
+
+<script src="/plugins/uptime-kuma/scripts/uptime-kuma.js"></script>
+<script>
+uptimeKumaInit(<?= json_encode([
+    'refreshInterval' => (int)($cfg['REFRESHINTERVAL'] ?? 30),
+    'maxMonitors'     => (int)($cfg['MAXMONITORS'] ?? 50),
+    'defaultPeriod'   => $cfg['DEFAULTPERIOD'] ?? '24h',
+]) ?>);
+</script>

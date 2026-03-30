@@ -1,0 +1,66 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+  <!ENTITY name      "uptime-kuma">
+  <!ENTITY author    "drohack">
+  <!ENTITY version   "2026.03.30">
+  <!ENTITY launch    "Settings/UptimeKumaSettings">
+  <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
+  <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
+  <!ENTITY pkgURL    "&gitURL;/pkg">
+  <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
+  <!ENTITY cfgdir    "/boot/config/plugins/&name;">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;"
+  launch="&launch;" pluginURL="&pluginURL;" min="6.11.0"
+  icon="heartbeat"
+  support="https://github.com/drohack/UptimeKumaPlugin/issues">
+
+<CHANGES>
+###2026.03.30
+- Initial release
+- Dashboard widget showing Uptime Kuma monitor statuses
+- Uptime percentage with configurable time periods (1h to 180d)
+- Direct SQLite database read (no API overhead)
+- Settings page for configuration
+</CHANGES>
+
+<!-- Pre-install cleanup: remove old package versions -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+#!/bin/bash
+# Remove old package if upgrading
+removepkg &name;-* 2>/dev/null
+
+# Remove plugin files from emhttp
+rm -rf &emhttp;
+
+echo "Plugin &name; has been removed."
+</INLINE>
+</FILE>
+
+<!-- Download and install the plugin package -->
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>&pkgURL;/&name;-&version;-x86_64-1.txz</URL>
+</FILE>
+
+<!-- Post-install: set up config and permissions -->
+<FILE Run="/bin/bash">
+<INLINE>
+#!/bin/bash
+
+# Create config directory
+mkdir -p &cfgdir;
+
+# Copy default config if none exists (preserves user config across upgrades)
+if [ ! -f "&cfgdir;/uptime-kuma.cfg" ]; then
+    cp &emhttp;/default.cfg &cfgdir;/uptime-kuma.cfg
+    echo "Default configuration installed."
+fi
+
+echo "Plugin &name; version &version; installed."
+</INLINE>
+</FILE>
+
+</PLUGIN>
