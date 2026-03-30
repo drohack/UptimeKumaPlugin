@@ -3,13 +3,12 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30f">
+  <!ENTITY version   "2026.03.30g">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
-  <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
-  <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
+  <!ENTITY pluginURL "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/uptime-kuma.plg">
+  <!ENTITY srcURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
   <!ENTITY cfgdir    "/boot/config/plugins/&name;">
-  <!ENTITY srcURL    "&gitURL;/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;"
@@ -18,60 +17,37 @@
   support="https://github.com/drohack/UptimeKumaPlugin/issues">
 
 <CHANGES>
+###2026.03.30g
+- Fix: Force re-download all files on install/update
+- Native Unraid tile structure with proper header controls
+- Heartbeat bars with hover tooltips
+- Settings moved to Utilities menu
+- Monochrome icon for settings page
+
 ###2026.03.30
 - Initial release
-- Dashboard widget showing Uptime Kuma monitor statuses
-- Uptime percentage with configurable time periods (1h to 180d)
-- Direct SQLite database read (no API overhead)
-- Settings page for configuration
 </CHANGES>
 
-<!-- Clean existing files so FILE elements re-download fresh copies -->
+<!-- Install: clean old files and download fresh from GitHub -->
 <FILE Run="/bin/bash">
 <INLINE>
 #!/bin/bash
+
+# Remove old plugin files completely
 rm -rf &emhttp;
+
+# Recreate directory structure
 mkdir -p &emhttp;/images &emhttp;/css &emhttp;/scripts
-</INLINE>
-</FILE>
 
-<!-- Download plugin files directly from GitHub -->
-<FILE Name="&emhttp;/UptimeKumaSettings.page">
-<URL>&srcURL;/UptimeKumaSettings.page</URL>
-</FILE>
-
-<FILE Name="&emhttp;/UptimeKumaDashboard.page">
-<URL>&srcURL;/UptimeKumaDashboard.page</URL>
-</FILE>
-
-<FILE Name="&emhttp;/UptimeKumaData.php">
-<URL>&srcURL;/UptimeKumaData.php</URL>
-</FILE>
-
-<FILE Name="&emhttp;/default.cfg">
-<URL>&srcURL;/default.cfg</URL>
-</FILE>
-
-<FILE Name="&emhttp;/images/icon.svg">
-<URL>&srcURL;/images/icon.svg</URL>
-</FILE>
-
-<FILE Name="&emhttp;/images/icon-mono.svg">
-<URL>&srcURL;/images/icon-mono.svg</URL>
-</FILE>
-
-<FILE Name="&emhttp;/css/uptime-kuma.css">
-<URL>&srcURL;/css/uptime-kuma.css</URL>
-</FILE>
-
-<FILE Name="&emhttp;/scripts/uptime-kuma.js">
-<URL>&srcURL;/scripts/uptime-kuma.js</URL>
-</FILE>
-
-<!-- Post-install: set up config -->
-<FILE Run="/bin/bash">
-<INLINE>
-#!/bin/bash
+# Download all plugin files fresh (--no-cache bypasses any proxy caching)
+wget -q --no-cache -O &emhttp;/default.cfg              "&srcURL;/default.cfg"
+wget -q --no-cache -O &emhttp;/UptimeKumaSettings.page  "&srcURL;/UptimeKumaSettings.page"
+wget -q --no-cache -O &emhttp;/UptimeKumaDashboard.page "&srcURL;/UptimeKumaDashboard.page"
+wget -q --no-cache -O &emhttp;/UptimeKumaData.php       "&srcURL;/UptimeKumaData.php"
+wget -q --no-cache -O &emhttp;/scripts/uptime-kuma.js   "&srcURL;/scripts/uptime-kuma.js"
+wget -q --no-cache -O &emhttp;/css/uptime-kuma.css      "&srcURL;/css/uptime-kuma.css"
+wget -q --no-cache -O &emhttp;/images/icon.svg          "&srcURL;/images/icon.svg"
+wget -q --no-cache -O &emhttp;/images/icon-mono.svg     "&srcURL;/images/icon-mono.svg"
 
 # Create config directory
 mkdir -p &cfgdir;
