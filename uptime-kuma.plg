@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30">
+  <!ENTITY version   "2026.03.30a">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
   <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
