@@ -52,17 +52,15 @@
 }
 
 .uk-monitor-name {
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: normal;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .uk-monitor-uptime {
-    font-family: monospace;
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: normal;
     white-space: nowrap;
     margin-left: 8px;
     padding: 2px 8px;
