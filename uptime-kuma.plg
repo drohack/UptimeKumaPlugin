@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30a">
+  <!ENTITY version   "2026.03.30b">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
   <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
@@ -25,6 +25,15 @@
 - Direct SQLite database read (no API overhead)
 - Settings page for configuration
 </CHANGES>
+
+<!-- Clean existing files so FILE elements re-download fresh copies -->
+<FILE Run="/bin/bash">
+<INLINE>
+#!/bin/bash
+rm -rf &emhttp;
+mkdir -p &emhttp;/images &emhttp;/css &emhttp;/scripts
+</INLINE>
+</FILE>
 
 <!-- Download plugin files directly from GitHub -->
 <FILE Name="&emhttp;/UptimeKumaSettings.page">
