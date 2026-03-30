@@ -2,8 +2,7 @@
 
 An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/uptime-kuma) monitor statuses directly on the Unraid dashboard with heartbeat bars, uptime percentages, and configurable time periods.
 
-<!-- TODO: Add a screenshot here -->
-<!-- ![Dashboard Screenshot](docs/screenshot.png) -->
+![Dashboard Screenshot](src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma/images/screenshot.png)
 
 ## Features
 

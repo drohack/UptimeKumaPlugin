@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30m">
+  <!ENTITY version   "2026.03.30n">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/uptime-kuma.plg">
   <!ENTITY srcURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
@@ -17,12 +17,19 @@
   support="https://github.com/drohack/UptimeKumaPlugin/issues">
 
 <CHANGES>
-###2026.03.30g
-- Fix: Force re-download all files on install/update
-- Native Unraid tile structure with proper header controls
-- Heartbeat bars with hover tooltips
-- Settings moved to Utilities menu
-- Monochrome icon for settings page
+###2026.03.30n
+- Code cleanup: remove dead code, sanitize inputs, optimize queries
+- Supports Uptime Kuma v1.x and v2.x (auto-detected)
+- v2 uses stat_hourly/stat_daily for longer time periods
+
+###2026.03.30k
+- Heartbeat bars with hover tooltips matching Uptime Kuma style
+- Native Unraid dashboard tile (1/3 width, border, background)
+- WebUI link with auto-detect from Docker template
+- Monitor checklist to select which monitors to display
+- Configurable refresh interval (10s to 10 min, default 1 min)
+- Configurable time periods (1h to 180d)
+- Settings page accessible via plugin icon
 
 ###2026.03.30
 - Initial release

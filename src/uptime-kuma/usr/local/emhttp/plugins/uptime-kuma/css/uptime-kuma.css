@@ -132,14 +132,6 @@
     color: #f8a306;
 }
 
-.uk-overflow {
-    padding: 8px 0;
-    color: #888;
-    font-style: italic;
-    text-align: center;
-    font-size: 0.85em;
-}
-
 /* ---- Dark Mode ---- */
 
 .dark .uk-beat-empty {

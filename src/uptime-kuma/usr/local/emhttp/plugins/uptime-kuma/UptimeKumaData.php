@@ -23,6 +23,14 @@ $action = $_GET['action'] ?? 'fetch';
 // Allow overriding dbpath via query param (for Test Connection before saving)
 $dbpath = $_GET['dbpath'] ?? $cfg['DBPATH'] ?? '';
 
+// Sanitize dbpath to prevent path traversal
+if (!empty($dbpath)) {
+    $resolved = realpath($dbpath);
+    if ($resolved !== false) {
+        $dbpath = $resolved;
+    }
+}
+
 // Valid time periods and their cutoff in seconds
 $periods = [
     '1h'   => 3600,
@@ -92,101 +100,6 @@ if ($action === 'test') {
         echo json_encode([
             'success' => true,
             'message' => "Connection successful. Found {$monitorCount} active monitor(s) and {$heartbeatCount} heartbeat record(s). (Uptime Kuma v{$kumaVersion})",
-        ]);
-    } catch (Exception $e) {
-        echo json_encode(['error' => $e->getMessage()]);
-    }
-    exit;
-}
-
-// ---- Action: fetch ----
-if ($action === 'fetch') {
-    $period = $_GET['period'] ?? ($cfg['DEFAULTPERIOD'] ?? '24h');
-    $maxMonitors = (int)($cfg['MAXMONITORS'] ?? 50);
-
-    if (!isset($periods[$period])) {
-        echo json_encode(['error' => "Invalid period: {$period}"]);
-        exit;
-    }
-
-    $cutoffSeconds = $periods[$period];
-    $cutoffTime = date('Y-m-d H:i:s', time() - $cutoffSeconds);
-
-    try {
-        $db = openKumaDb($dbpath);
-
-        // Get active monitors with their current status and uptime %
-        $sql = "
-            SELECT
-                m.id,
-                m.name,
-                m.type,
-                m.url,
-                m.hostname,
-                m.port,
-                (SELECT h.status
-                 FROM heartbeat h
-                 WHERE h.monitor_id = m.id
-                 ORDER BY h.time DESC
-                 LIMIT 1) AS current_status,
-                (SELECT h.ping
-                 FROM heartbeat h
-                 WHERE h.monitor_id = m.id
-                 ORDER BY h.time DESC
-                 LIMIT 1) AS last_ping,
-                (SELECT ROUND(
-                    100.0 * SUM(CASE WHEN h2.status = 1 THEN 1 ELSE 0 END) / COUNT(*), 2
-                 )
-                 FROM heartbeat h2
-                 WHERE h2.monitor_id = m.id
-                   AND h2.time >= :cutoff) AS uptime_pct,
-                (SELECT COUNT(*)
-                 FROM heartbeat h3
-                 WHERE h3.monitor_id = m.id
-                   AND h3.time >= :cutoff2) AS heartbeat_count
-            FROM monitor m
-            WHERE m.active = 1
-            ORDER BY
-                CASE
-                    WHEN (SELECT h4.status FROM heartbeat h4 WHERE h4.monitor_id = m.id ORDER BY h4.time DESC LIMIT 1) = 0 THEN 0
-                    WHEN (SELECT h5.status FROM heartbeat h5 WHERE h5.monitor_id = m.id ORDER BY h5.time DESC LIMIT 1) = 3 THEN 1
-                    WHEN (SELECT h6.status FROM heartbeat h6 WHERE h6.monitor_id = m.id ORDER BY h6.time DESC LIMIT 1) = 2 THEN 2
-                    ELSE 3
-                END ASC,
-                m.name ASC
-            LIMIT :maxMonitors
-        ";
-
-        $stmt = $db->prepare($sql);
-        $stmt->bindValue(':cutoff', $cutoffTime, SQLITE3_TEXT);
-        $stmt->bindValue(':cutoff2', $cutoffTime, SQLITE3_TEXT);
-        $stmt->bindValue(':maxMonitors', $maxMonitors, SQLITE3_INTEGER);
-
-        $result = $stmt->execute();
-        $monitors = [];
-        $totalMonitors = $db->querySingle("SELECT COUNT(*) FROM monitor WHERE active = 1");
-
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $monitors[] = [
-                'id'             => (int)$row['id'],
-                'name'           => $row['name'],
-                'type'           => $row['type'],
-                'url'            => $row['url'] ?: $row['hostname'],
-                'port'           => $row['port'],
-                'status'         => $row['current_status'] !== null ? (int)$row['current_status'] : null,
-                'lastPing'       => $row['last_ping'] !== null ? round((float)$row['last_ping'], 1) : null,
-                'uptimePct'      => $row['uptime_pct'] !== null ? (float)$row['uptime_pct'] : null,
-                'heartbeatCount' => (int)$row['heartbeat_count'],
-            ];
-        }
-
-        $stmt->close();
-        $db->close();
-
-        echo json_encode([
-            'monitors'      => $monitors,
-            'period'        => $period,
-            'totalMonitors' => (int)$totalMonitors,
         ]);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -512,13 +425,11 @@ if ($action === 'beats') {
             }
         }
 
-        $totalMonitors = $db->querySingle("SELECT COUNT(*) FROM monitor WHERE active = 1");
         $db->close();
 
         echo json_encode([
-            'monitors'      => array_values($monitors),
-            'period'        => $period,
-            'totalMonitors' => (int)$totalMonitors,
+            'monitors' => array_values($monitors),
+            'period'   => $period,
         ]);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
