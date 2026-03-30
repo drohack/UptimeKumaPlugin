@@ -18,8 +18,10 @@ if (!file_exists($cfgfile)) {
 }
 
 $cfg = parse_ini_file($cfgfile);
-$dbpath = $cfg['DBPATH'] ?? '';
 $action = $_GET['action'] ?? 'fetch';
+
+// Allow overriding dbpath via query param (for Test Connection before saving)
+$dbpath = $_GET['dbpath'] ?? $cfg['DBPATH'] ?? '';
 
 // Valid time periods and their cutoff in seconds
 $periods = [

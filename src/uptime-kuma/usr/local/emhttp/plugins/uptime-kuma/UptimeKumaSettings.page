@@ -112,7 +112,7 @@ function uptimeKumaTestConnection() {
     resultEl.innerHTML = '<span style="color:#ff9800;">Testing...</span>';
 
     // We pass the dbpath as a query parameter for testing before saving
-    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'test' }, function(data) {
+    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'test', dbpath: dbpath }, function(data) {
         if (data.success) {
             resultEl.innerHTML = '<span style="color:#4caf50;">' + escapeHtml(data.message) + '</span>';
         } else {
