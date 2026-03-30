@@ -180,10 +180,63 @@ if ($action === 'fetch') {
     exit;
 }
 
+// ---- Action: list ----
+// Returns all monitors for the settings page checklist
+if ($action === 'list') {
+    try {
+        $db = openKumaDb($dbpath);
+        $result = $db->query("SELECT id, name, type, active FROM monitor ORDER BY name ASC");
+        $monitors = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $monitors[] = [
+                'id'     => (int)$row['id'],
+                'name'   => $row['name'],
+                'type'   => $row['type'],
+                'active' => (int)$row['active'],
+            ];
+        }
+        $db->close();
+        echo json_encode(['monitors' => $monitors]);
+    } catch (Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ---- Action: webui ----
+// Auto-detect Uptime Kuma WebUI URL from Docker template
+if ($action === 'webui') {
+    $webui = $cfg['WEBUI'] ?? '';
+    if (empty($webui)) {
+        // Try to auto-detect from Docker templates
+        $templateDir = '/boot/config/plugins/dockerMan/templates-user/';
+        if (is_dir($templateDir)) {
+            $files = glob($templateDir . '*.xml');
+            foreach ($files as $file) {
+                $content = file_get_contents($file);
+                if (stripos($content, 'uptime') !== false || stripos($content, 'kuma') !== false) {
+                    if (preg_match('/<WebUI>(.*?)<\/WebUI>/i', $content, $m)) {
+                        $webui = $m[1];
+                        // Replace [IP] with server IP
+                        $serverIp = $_SERVER['SERVER_ADDR'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $serverIp = preg_replace('/:\d+$/', '', $serverIp);
+                        $webui = str_replace('[IP]', $serverIp, $webui);
+                        // Replace [PORT:xxxx] with the port
+                        $webui = preg_replace('/\[PORT:(\d+)\]/', '$1', $webui);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    echo json_encode(['webui' => $webui]);
+    exit;
+}
+
 // ---- Action: beats ----
 if ($action === 'beats') {
     $period = $_GET['period'] ?? ($cfg['DEFAULTPERIOD'] ?? '24h');
-    $maxMonitors = (int)($cfg['MAXMONITORS'] ?? 5);
+    $monitorFilter = $cfg['MONITORS'] ?? '';
 
     if (!isset($periods[$period])) {
         echo json_encode(['error' => "Invalid period: {$period}"]);
@@ -209,12 +262,23 @@ if ($action === 'beats') {
     try {
         $db = openKumaDb($dbpath);
 
-        // Get active monitors
+        // Build monitor filter
+        $monitorWhere = "m.active = 1";
+        if (!empty($monitorFilter)) {
+            $filterIds = array_map('intval', explode(',', $monitorFilter));
+            $filterIds = array_filter($filterIds);
+            if (!empty($filterIds)) {
+                $idList = implode(',', $filterIds);
+                $monitorWhere = "m.id IN ({$idList})";
+            }
+        }
+
+        // Get monitors
         $monSql = "
             SELECT m.id, m.name, m.type, m.url, m.hostname, m.port,
                 (SELECT h.status FROM heartbeat h WHERE h.monitor_id = m.id ORDER BY h.time DESC LIMIT 1) AS current_status
             FROM monitor m
-            WHERE m.active = 1
+            WHERE {$monitorWhere}
             ORDER BY
                 CASE
                     WHEN (SELECT h2.status FROM heartbeat h2 WHERE h2.monitor_id = m.id ORDER BY h2.time DESC LIMIT 1) = 0 THEN 0
@@ -223,10 +287,8 @@ if ($action === 'beats') {
                     ELSE 3
                 END ASC,
                 m.name ASC
-            LIMIT :maxMonitors
         ";
         $monStmt = $db->prepare($monSql);
-        $monStmt->bindValue(':maxMonitors', $maxMonitors, SQLITE3_INTEGER);
         $monResult = $monStmt->execute();
 
         $monitors = [];

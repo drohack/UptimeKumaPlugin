@@ -14,6 +14,7 @@ if (!file_exists($cfgfile)) {
 }
 
 $cfg = parse_ini_file($cfgfile);
+$selectedMonitors = array_filter(explode(',', $cfg['MONITORS'] ?? ''));
 ?>
 
 <link rel="stylesheet" href="/plugins/uptime-kuma/css/uptime-kuma.css">
@@ -34,8 +35,8 @@ $cfg = parse_ini_file($cfgfile);
                     <td>Enable Dashboard Widget:</td>
                     <td>
                         <select name="SERVICE">
-                            <option value="disable" <?= ($cfg['SERVICE'] ?? '') === 'disable' ? 'selected' : '' ?>>Disabled</option>
-                            <option value="enable" <?= ($cfg['SERVICE'] ?? '') === 'enable' ? 'selected' : '' ?>>Enabled</option>
+                            <option value="disable" <?= ($cfg['SERVICE'] ?? '') == 'disable' ? 'selected' : '' ?>>Disabled</option>
+                            <option value="enable" <?= ($cfg['SERVICE'] ?? '') == 'enable' ? 'selected' : '' ?>>Enabled</option>
                         </select>
                     </td>
                 </tr>
@@ -53,6 +54,19 @@ $cfg = parse_ini_file($cfgfile);
                         </p>
                     </td>
                 </tr>
+                <tr>
+                    <td>WebUI URL:</td>
+                    <td>
+                        <input type="text" name="WEBUI" id="uk-webui" value="<?= htmlspecialchars($cfg['WEBUI'] ?? '') ?>"
+                               placeholder="http://192.168.1.100:3001" size="60">
+                        <button type="button" class="uk-btn" onclick="uptimeKumaDetectWebUI()">Auto-Detect</button>
+                        <span id="uk-webui-result"></span>
+                        <p class="uk-help-text">
+                            URL to open Uptime Kuma's web interface. Leave blank to auto-detect from Docker template.<br>
+                            Check your Uptime Kuma Docker container settings for the WebUI URL.
+                        </p>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
@@ -66,19 +80,21 @@ $cfg = parse_ini_file($cfgfile);
                     <td>
                         <select name="REFRESHINTERVAL">
                             <?php
-                            $intervals = ['10' => '10 seconds', '15' => '15 seconds', '30' => '30 seconds', '60' => '1 minute', '120' => '2 minutes'];
+                            $intervals = [
+                                '10' => '10 seconds',
+                                '15' => '15 seconds',
+                                '30' => '30 seconds',
+                                '60' => '1 minute',
+                                '120' => '2 minutes',
+                                '300' => '5 minutes',
+                                '600' => '10 minutes',
+                            ];
+                            $currentInterval = $cfg['REFRESHINTERVAL'] ?? '60';
                             foreach ($intervals as $val => $label):
                             ?>
-                                <option value="<?= $val ?>" <?= ($cfg['REFRESHINTERVAL'] ?? '30') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                                <option value="<?= $val ?>" <?= $currentInterval == $val ? 'selected' : '' ?>><?= $label ?></option>
                             <?php endforeach; ?>
                         </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Max Monitors to Display:</td>
-                    <td>
-                        <input type="number" name="MAXMONITORS" value="<?= htmlspecialchars($cfg['MAXMONITORS'] ?? '50') ?>"
-                               min="1" max="200" size="5">
                     </td>
                 </tr>
                 <tr>
@@ -87,11 +103,24 @@ $cfg = parse_ini_file($cfgfile);
                         <select name="DEFAULTPERIOD">
                             <?php
                             $periodOptions = ['1h' => '1 Hour', '12h' => '12 Hours', '24h' => '24 Hours', '7d' => '7 Days', '30d' => '30 Days', '90d' => '90 Days', '180d' => '180 Days'];
+                            $currentPeriod = $cfg['DEFAULTPERIOD'] ?? '24h';
                             foreach ($periodOptions as $val => $label):
                             ?>
-                                <option value="<?= $val ?>" <?= ($cfg['DEFAULTPERIOD'] ?? '24h') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                                <option value="<?= $val ?>" <?= $currentPeriod == $val ? 'selected' : '' ?>><?= $label ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Monitors to Display:</td>
+                    <td>
+                        <input type="hidden" name="MONITORS" id="uk-monitors-value" value="<?= htmlspecialchars($cfg['MONITORS'] ?? '') ?>">
+                        <div id="uk-monitor-list">
+                            <em>Loading monitors...</em>
+                        </div>
+                        <p class="uk-help-text">
+                            Select which monitors to show on the dashboard. If none are selected, all active monitors will be shown.
+                        </p>
                     </td>
                 </tr>
             </tbody>
@@ -106,15 +135,22 @@ $cfg = parse_ini_file($cfgfile);
 </div>
 
 <script>
+var ukSelectedMonitors = <?= json_encode($selectedMonitors) ?>;
+
+$(function() {
+    uptimeKumaLoadMonitors();
+});
+
 function uptimeKumaTestConnection() {
     var dbpath = document.querySelector('input[name="DBPATH"]').value;
     var resultEl = document.getElementById('uk-test-result');
     resultEl.innerHTML = '<span style="color:#ff9800;">Testing...</span>';
 
-    // We pass the dbpath as a query parameter for testing before saving
     $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'test', dbpath: dbpath }, function(data) {
         if (data.success) {
             resultEl.innerHTML = '<span style="color:#4caf50;">' + escapeHtml(data.message) + '</span>';
+            // Reload monitor list after successful connection test
+            uptimeKumaLoadMonitors();
         } else {
             resultEl.innerHTML = '<span style="color:#f44336;">' + escapeHtml(data.error) + '</span>';
         }
@@ -123,8 +159,67 @@ function uptimeKumaTestConnection() {
     });
 }
 
+function uptimeKumaDetectWebUI() {
+    var resultEl = document.getElementById('uk-webui-result');
+    resultEl.innerHTML = '<span style="color:#ff9800;">Detecting...</span>';
+
+    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'webui' }, function(data) {
+        if (data.webui) {
+            document.getElementById('uk-webui').value = data.webui;
+            resultEl.innerHTML = '<span style="color:#4caf50;">Found: ' + escapeHtml(data.webui) + '</span>';
+        } else {
+            resultEl.innerHTML = '<span style="color:#f44336;">Could not auto-detect. Please enter manually.</span>';
+        }
+    }).fail(function() {
+        resultEl.innerHTML = '<span style="color:#f44336;">Failed to reach plugin backend.</span>';
+    });
+}
+
+function uptimeKumaLoadMonitors() {
+    var container = document.getElementById('uk-monitor-list');
+    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'list' }, function(data) {
+        if (data.error) {
+            container.innerHTML = '<em style="color:#888;">Configure database path first, then click Test Connection.</em>';
+            return;
+        }
+        if (!data.monitors || data.monitors.length === 0) {
+            container.innerHTML = '<em>No monitors found.</em>';
+            return;
+        }
+
+        var html = '';
+        data.monitors.forEach(function(m) {
+            var checked = (ukSelectedMonitors.length === 0 || ukSelectedMonitors.indexOf(String(m.id)) !== -1) ? 'checked' : '';
+            var activeLabel = m.active ? '' : ' <span style="color:#888;">(inactive)</span>';
+            html += '<label class="uk-monitor-checkbox">';
+            html += '<input type="checkbox" value="' + m.id + '" ' + checked + ' onchange="uptimeKumaUpdateMonitors()"> ';
+            html += escapeHtml(m.name) + activeLabel;
+            html += '</label><br>';
+        });
+        container.innerHTML = html;
+    }).fail(function() {
+        container.innerHTML = '<em style="color:#888;">Configure database path first.</em>';
+    });
+}
+
+function uptimeKumaUpdateMonitors() {
+    var checkboxes = document.querySelectorAll('#uk-monitor-list input[type="checkbox"]');
+    var allChecked = true;
+    var ids = [];
+    checkboxes.forEach(function(cb) {
+        if (cb.checked) {
+            ids.push(cb.value);
+        } else {
+            allChecked = false;
+        }
+    });
+    // If all are checked, store empty string (means "show all")
+    document.getElementById('uk-monitors-value').value = allChecked ? '' : ids.join(',');
+}
+
 function resetForm() {
     document.getElementById('uk-settings-form').reset();
+    uptimeKumaLoadMonitors();
 }
 
 function escapeHtml(text) {

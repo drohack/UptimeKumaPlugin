@@ -18,12 +18,36 @@ function uptimeKumaInit(config) {
         });
     }
 
+    // Set up WebUI link
+    ukSetupWebUI(config.webui);
+
     // Initial fetch
     ukFetch();
 
     // Start polling
-    var interval = Math.max(config.refreshInterval || 30, 10) * 1000;
+    var interval = Math.max(config.refreshInterval || 60, 10) * 1000;
     ukPollingTimer = setInterval(ukFetch, interval);
+}
+
+function ukSetupWebUI(webui) {
+    if (webui) {
+        ukShowWebUILink(webui);
+    } else {
+        // Try auto-detect
+        $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'webui' }, function (data) {
+            if (data.webui) {
+                ukShowWebUILink(data.webui);
+            }
+        });
+    }
+}
+
+function ukShowWebUILink(url) {
+    var link = document.getElementById('uk-webui-link');
+    if (link) {
+        link.href = url;
+        link.style.display = '';
+    }
 }
 
 function ukGetPeriod() {
@@ -49,31 +73,11 @@ function ukFetch() {
 
 function ukRender(monitors, totalMonitors, period) {
     var container = document.getElementById('uk-monitors');
-    var summary = document.getElementById('uk-summary');
     if (!container) return;
-
-    // Calculate summary counts
-    var upCount = 0, downCount = 0, maintCount = 0;
-    monitors.forEach(function (m) {
-        switch (m.status) {
-            case 1: upCount++; break;
-            case 0: downCount++; break;
-            case 3: maintCount++; break;
-        }
-    });
-
-    // Update summary text
-    if (summary) {
-        var parts = [];
-        parts.push(upCount + ' up');
-        if (downCount > 0) parts.push(downCount + ' down');
-        if (maintCount > 0) parts.push(maintCount + ' maint');
-        summary.textContent = parts.join(' / ');
-    }
 
     // Build monitor rows
     if (monitors.length === 0) {
-        container.innerHTML = '<div class="uk-empty">No active monitors found.</div>';
+        container.innerHTML = '<div class="uk-empty">No monitors found.</div>';
         return;
     }
 
@@ -88,7 +92,7 @@ function ukRender(monitors, totalMonitors, period) {
             default: statusIcon = 'fa-question-circle'; iconClass = 'uk-icon-unknown'; break;
         }
 
-        // Uptime percentage with color class
+        // Uptime percentage badge
         var uptimeHtml = '';
         if (monitor.uptimePct !== null) {
             var uptimeClass = 'uk-uptime-good';
@@ -131,12 +135,6 @@ function ukRender(monitors, totalMonitors, period) {
         html += '</div>';
     });
 
-    // Overflow indicator
-    if (totalMonitors > monitors.length) {
-        var remaining = totalMonitors - monitors.length;
-        html += '<div class="uk-overflow">... and ' + remaining + ' more monitor' + (remaining !== 1 ? 's' : '') + '</div>';
-    }
-
     container.innerHTML = html;
 }
 
@@ -144,10 +142,6 @@ function ukRenderError(message) {
     var container = document.getElementById('uk-monitors');
     if (container) {
         container.innerHTML = '<div class="uk-error"><i class="fa fa-exclamation-triangle"></i> ' + ukEscapeHtml(message) + '</div>';
-    }
-    var summary = document.getElementById('uk-summary');
-    if (summary) {
-        summary.textContent = 'Error';
     }
 }
 

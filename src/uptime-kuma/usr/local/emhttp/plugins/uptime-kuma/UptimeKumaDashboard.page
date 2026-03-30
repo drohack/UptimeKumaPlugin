@@ -19,7 +19,6 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
                     <i class='fa fa-heartbeat f32'></i>
                     <div class='section'>
                         <h3 class='tile-header-main'>Uptime Kuma</h3>
-                        <span id='uk-summary'>Loading...</span>
                     </div>
                 </span>
                 <span class='tile-header-right'>
@@ -33,6 +32,7 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
                             <option value='90d'>90 Days</option>
                             <option value='180d'>180 Days</option>
                         </select>
+                        <a id='uk-webui-link' href='#' target='_blank' title='Open Uptime Kuma' style='display:none'><i class='fa fa-fw fa-external-link control'></i></a>
                         <a href='/Settings/UptimeKumaSettings' title='Uptime Kuma Settings'><i class='fa fa-fw fa-cog control'></i></a>
                         <i class='fa fa-fw fa-chevron-up control openclose' onclick='openClose($(this))' title='Toggle'></i>
                     </span>
@@ -53,26 +53,24 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
 <link rel='stylesheet' href='/plugins/uptime-kuma/css/uptime-kuma.css'>
 <script src='/plugins/uptime-kuma/scripts/uptime-kuma.js'></script>
 <script>
-// Move widget into the dashboard grid so it gets 1/3 column width
+// Move widget into the dashboard grid for 1/3 column width
 $(function(){
     var tbl = $('#tblUptimeKuma');
     var tile = $('div.tile').last();
     if (tile.length) {
         var target = tile.find('table.dashboard').last();
         if (target.length) {
-            // Append our tbody into an existing tile's table
             tbl.find('tbody').appendTo(target);
             tbl.remove();
         } else {
-            // Append our whole table into the tile
             tbl.appendTo(tile);
         }
     }
 });
 
 uptimeKumaInit(<?=json_encode([
-    'refreshInterval' => (int)($cfg['REFRESHINTERVAL'] ?? 30),
-    'maxMonitors'     => (int)($cfg['MAXMONITORS'] ?? 5),
+    'refreshInterval' => (int)($cfg['REFRESHINTERVAL'] ?? 60),
     'defaultPeriod'   => $cfg['DEFAULTPERIOD'] ?? '24h',
+    'webui'           => $cfg['WEBUI'] ?? '',
 ])?>);
 </script>

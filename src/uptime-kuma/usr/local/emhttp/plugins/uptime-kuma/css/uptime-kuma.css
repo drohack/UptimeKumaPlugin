@@ -57,10 +57,13 @@
 
 .uk-monitor-uptime {
     font-family: monospace;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
     margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #fff;
 }
 
 /* ---- Status Icons ---- */
@@ -73,9 +76,9 @@
 
 /* ---- Uptime % Colors ---- */
 
-.uk-uptime-good { color: #5cdd8b; }
-.uk-uptime-warn { color: #f8a306; }
-.uk-uptime-bad { color: #dc3545; }
+.uk-uptime-good { background-color: #5cdd8b; }
+.uk-uptime-warn { background-color: #f8a306; }
+.uk-uptime-bad { background-color: #dc3545; }
 
 /* ---- Heartbeat Bar ---- */
 
@@ -167,7 +170,22 @@
     margin-top: 16px;
 }
 
-#uk-test-result {
+#uk-test-result,
+#uk-webui-result {
     margin-left: 8px;
     font-size: 0.9em;
+}
+
+.uk-monitor-checkbox {
+    display: inline-block;
+    margin: 2px 16px 2px 0;
+    cursor: pointer;
+}
+
+#uk-monitor-list {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+    border: 1px solid var(--table-border-color, #ddd);
+    border-radius: 4px;
 }
