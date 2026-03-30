@@ -1,6 +1,6 @@
 Menu="Utilities"
 Title="Uptime Kuma"
-Icon="icon.svg"
+Icon="icon-mono.svg"
 ---
 <?php
 $plugin = "uptime-kuma";

@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30d">
+  <!ENTITY version   "2026.03.30e">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY gitURL    "https://cdn.jsdelivr.net/gh/drohack/UptimeKumaPlugin@main">
   <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
@@ -54,6 +54,10 @@ mkdir -p &emhttp;/images &emhttp;/css &emhttp;/scripts
 
 <FILE Name="&emhttp;/images/icon.svg">
 <URL>&srcURL;/images/icon.svg</URL>
+</FILE>
+
+<FILE Name="&emhttp;/images/icon-mono.svg">
+<URL>&srcURL;/images/icon-mono.svg</URL>
 </FILE>
 
 <FILE Name="&emhttp;/css/uptime-kuma.css">

@@ -1,7 +1,31 @@
 /*
- * Uptime Kuma Dashboard Widget - Styles
- * Uses Unraid CSS variables for theme compatibility.
+ * Uptime Kuma Dashboard Widget
+ * Relies on Unraid's native table.dashboard styles for tile container.
  */
+
+/* ---- Custom Plugin Icon ---- */
+
+.icon-uptime-kuma {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: url('/plugins/uptime-kuma/images/icon.svg') no-repeat center center;
+    background-size: contain;
+}
+
+/* ---- Period Dropdown in Header ---- */
+
+.uk-period-dropdown {
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    margin-right: 4px;
+    border: 1px solid var(--table-border-color, #ccc);
+    border-radius: 4px;
+    background: var(--mild-background-color, #fff);
+    color: inherit;
+    cursor: pointer;
+    vertical-align: middle;
+}
 
 /* ---- Monitor List ---- */
 
@@ -18,12 +42,12 @@
     border-bottom: none;
 }
 
-/* Monitor header row: name left, uptime % right */
+/* Monitor header: name left, uptime % right */
 .uk-monitor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .uk-monitor-name-row {
@@ -35,7 +59,7 @@
 
 .uk-monitor-name {
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 0.9rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -43,7 +67,7 @@
 
 .uk-monitor-uptime {
     font-family: monospace;
-    font-size: 0.85em;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
     margin-left: 8px;
@@ -57,7 +81,7 @@
 .uk-icon-maint { color: #1747f5; }
 .uk-icon-unknown { color: #888; }
 
-/* ---- Uptime Percentage Colors ---- */
+/* ---- Uptime % Colors ---- */
 
 .uk-uptime-good { color: #5cdd8b; }
 .uk-uptime-warn { color: #f8a306; }
@@ -82,30 +106,15 @@
     transition: all ease-in-out 0.15s;
 }
 
-/* Beat status colors - matching Uptime Kuma */
 .uk-beat-up { background-color: #5cdd8b; }
 .uk-beat-down { background-color: #dc3545; }
 .uk-beat-pending { background-color: #f8a306; }
 .uk-beat-maint { background-color: #1747f5; }
 .uk-beat-empty { background-color: aliceblue; }
 
-/* Hover effect */
 .uk-beat:not(.uk-beat-empty):hover {
     opacity: 0.8;
     transform: scaleY(1.4);
-}
-
-/* ---- Header Controls ---- */
-
-.uk-period-dropdown {
-    font-size: 0.8em;
-    padding: 2px 4px;
-    margin-right: 8px;
-    border: 1px solid var(--table-border-color, #ccc);
-    border-radius: 3px;
-    background: var(--mild-background-color, #fff);
-    color: inherit;
-    cursor: pointer;
 }
 
 /* ---- State Messages ---- */
@@ -134,6 +143,12 @@
     font-style: italic;
     text-align: center;
     font-size: 0.85em;
+}
+
+/* ---- Dark Mode ---- */
+
+.dark .uk-beat-empty {
+    background-color: #484848;
 }
 
 /* ---- Settings Page ---- */
@@ -165,10 +180,4 @@
 #uk-test-result {
     margin-left: 8px;
     font-size: 0.9em;
-}
-
-/* ---- Dark Mode ---- */
-
-.dark .uk-beat-empty {
-    background-color: #484848;
 }
