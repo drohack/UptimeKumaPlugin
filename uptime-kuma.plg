@@ -3,9 +3,9 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.03.30b">
+  <!ENTITY version   "2026.03.30c">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
-  <!ENTITY gitURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main">
+  <!ENTITY gitURL    "https://cdn.jsdelivr.net/gh/drohack/UptimeKumaPlugin@main">
   <!ENTITY pluginURL "&gitURL;/uptime-kuma.plg">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
   <!ENTITY cfgdir    "/boot/config/plugins/&name;">
