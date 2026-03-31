@@ -2,6 +2,8 @@
 
 An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/uptime-kuma) monitor statuses directly on the Unraid dashboard with heartbeat bars, uptime percentages, and configurable time periods.
 
+> **Note:** This plugin requires Uptime Kuma to be running as a Docker container on the same Unraid server. It reads the SQLite database directly from the filesystem. Remote Uptime Kuma instances are not supported.
+
 ![Dashboard Screenshot](src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma/images/screenshot.png)
 
 ## Features
@@ -28,7 +30,7 @@ Version is auto-detected from the database. No configuration needed.
 ## Prerequisites
 
 - **Unraid 6.11.0 or later**
-- **Uptime Kuma** running as a Docker container on the same Unraid server
+- **Uptime Kuma** running as a Docker container **on the same Unraid server** (remote instances are not supported)
 - The Uptime Kuma Docker container must have its data directory volume-mapped to the Unraid filesystem (this is the default when installed via Community Applications)
 
 ## Installation
