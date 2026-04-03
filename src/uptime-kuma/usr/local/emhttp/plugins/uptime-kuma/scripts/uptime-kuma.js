@@ -44,7 +44,7 @@ function ukSetupWebUI(webui) {
 
 function ukShowWebUILink(url) {
     var link = document.getElementById('uk-webui-link');
-    if (link) {
+    if (link && url && (url.indexOf('http://') === 0 || url.indexOf('https://') === 0)) {
         link.href = url;
         link.style.display = '';
     }

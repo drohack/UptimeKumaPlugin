@@ -50,10 +50,10 @@ $periods = [
  */
 function openKumaDb(string $path): SQLite3 {
     if (!file_exists($path)) {
-        throw new Exception("Database file not found: {$path}");
+        throw new Exception("Database file not found. Check the path in settings.");
     }
     if (!is_readable($path)) {
-        throw new Exception("Database file not readable: {$path}. Check permissions.");
+        throw new Exception("Database file not readable. Check permissions.");
     }
 
     $db = new SQLite3($path, SQLITE3_OPEN_READONLY);
@@ -155,6 +155,10 @@ if ($action === 'webui') {
                 }
             }
         }
+    }
+    // Only return http/https URLs
+    if (!empty($webui) && !preg_match('#^https?://#i', $webui)) {
+        $webui = '';
     }
     echo json_encode(['webui' => $webui]);
     exit;
