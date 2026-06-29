@@ -186,7 +186,10 @@ if ($action === 'beats') {
     ];
 
     $cutoffSeconds = $periods[$period];
-    $cutoffTime = date('Y-m-d H:i:s', time() - $cutoffSeconds);
+    // Uptime Kuma stores timestamps in UTC, so the cutoff must be UTC too.
+    // Using local time (date()) on a server ahead of UTC shifts the cutoff
+    // forward and drops every beat inside short windows (e.g. 1h). See issue #1.
+    $cutoffTime = gmdate('Y-m-d H:i:s', time() - $cutoffSeconds);
     $bucketSize = $bucketSizes[$period];
     $numBuckets = (int)ceil($cutoffSeconds / $bucketSize);
 
