@@ -13,7 +13,7 @@ An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/up
 - Configurable time periods (1 hour, 12 hours, 24 hours, 7 days, 30 days, 90 days, 180 days)
 - Quick link to Uptime Kuma WebUI (auto-detected from Docker template or set manually)
 - Choose which monitors to display via checkbox list in settings
-- Native Unraid dashboard tile with settings cog, collapse, and external link controls
+- Native Unraid dashboard tile — drag to reorder like any other tile — with settings cog, collapse, and external link controls
 - Reads directly from Uptime Kuma's SQLite database — no API keys or background services needed
 - Supports both **Uptime Kuma v1.x** and **v2.x** (auto-detected)
 - Down monitors sorted to top
@@ -29,7 +29,7 @@ Version is auto-detected from the database. No configuration needed.
 
 ## Prerequisites
 
-- **Unraid 6.11.0 or later**
+- **Unraid 6.12.0 or later** (required for native dashboard tile support)
 - **Uptime Kuma** running as a Docker container **on the same Unraid server** (remote instances are not supported)
 - The Uptime Kuma Docker container must have its data directory volume-mapped to the Unraid filesystem (this is the default when installed via Community Applications)
 

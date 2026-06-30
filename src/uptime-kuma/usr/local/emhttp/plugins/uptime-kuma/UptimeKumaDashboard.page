@@ -1,4 +1,4 @@
-Menu="Dashboard"
+Menu="Dashboard:0"
 Icon="icon.svg"
 ---
 <?php
@@ -8,10 +8,20 @@ $cfgfile = "/boot/config/plugins/{$plugin}/uptime-kuma.cfg";
 if (!file_exists($cfgfile)) return;
 $cfg = parse_ini_file($cfgfile);
 if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
-?>
 
-<table class="dashboard" id="tblUptimeKuma">
-<tbody title="Uptime Kuma" sort="<?=md5('Uptime Kuma')?>">
+// Config passed to the frontend (built the same way regardless of placement).
+$cfgJson = json_encode([
+    'refreshInterval' => (int)($cfg['REFRESHINTERVAL'] ?? 60),
+    'defaultPeriod'   => $cfg['DEFAULTPERIOD'] ?? '24h',
+    'webui'           => $cfg['WEBUI'] ?? '',
+]);
+
+// Register as a native, draggable dashboard tile. Unraid's DashStats.page emits
+// this <tbody> inside one of its column tables via customTiles() and its jQuery
+// UI sortable picks it up automatically (it adds the .sortable class and the
+// sort= attribute from the title). No DOM manipulation on our side.
+$mytiles['uptime-kuma']['column1'] = <<<EOT
+<tbody title="Uptime Kuma">
     <tr>
         <td>
             <span class='tile-header'>
@@ -25,19 +35,18 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
                     <span class='tile-header-right-controls'>
                         <a id='uk-webui-link' href='#' target='_blank' rel='noopener noreferrer' title='Open Uptime Kuma' style='display:none'><i class='fa fa-fw fa-external-link control'></i></a>
                         <a href='/Settings/UptimeKumaSettings' title='Uptime Kuma Settings'><i class='fa fa-fw fa-cog control'></i></a>
-                        <i class='fa fa-fw fa-chevron-up control openclose' onclick='openClose($(this))' title='Toggle'></i>
-                        <select id='uk-period-select' class='uk-period-dropdown'>
-                            <option value='1h'>1 Hour</option>
-                            <option value='12h'>12 Hours</option>
-                            <option value='24h' selected>24 Hours</option>
-                            <option value='7d'>7 Days</option>
-                            <option value='30d'>30 Days</option>
-                            <option value='90d'>90 Days</option>
-                            <option value='180d'>180 Days</option>
-                        </select>
                     </span>
                 </span>
             </span>
+            <select id='uk-period-select' class='uk-period-dropdown'>
+                <option value='1h'>1 Hour</option>
+                <option value='12h'>12 Hours</option>
+                <option value='24h' selected>24 Hours</option>
+                <option value='7d'>7 Days</option>
+                <option value='30d'>30 Days</option>
+                <option value='90d'>90 Days</option>
+                <option value='180d'>180 Days</option>
+            </select>
         </td>
     </tr>
     <tr>
@@ -45,26 +54,11 @@ if (($cfg['SERVICE'] ?? 'disable') !== 'enable') return;
             <div id='uk-monitors'>
                 <div class='uk-loading'><i class='fa fa-spinner fa-spin'></i> Loading monitors...</div>
             </div>
+            <link rel='stylesheet' href='/plugins/uptime-kuma/css/uptime-kuma.css'>
+            <script src='/plugins/uptime-kuma/scripts/uptime-kuma.js'></script>
+            <script>uptimeKumaInit({$cfgJson});</script>
         </td>
     </tr>
 </tbody>
-</table>
-
-<link rel='stylesheet' href='/plugins/uptime-kuma/css/uptime-kuma.css'>
-<script src='/plugins/uptime-kuma/scripts/uptime-kuma.js'></script>
-<script>
-// Move widget table into the dashboard grid for 1/3 column width
-$(function(){
-    var tbl = $('#tblUptimeKuma');
-    var tile = $('div.tile').last();
-    if (tile.length) {
-        tbl.appendTo(tile);
-    }
-});
-
-uptimeKumaInit(<?=json_encode([
-    'refreshInterval' => (int)($cfg['REFRESHINTERVAL'] ?? 60),
-    'defaultPeriod'   => $cfg['DEFAULTPERIOD'] ?? '24h',
-    'webui'           => $cfg['WEBUI'] ?? '',
-])?>);
-</script>
+EOT;
+?>

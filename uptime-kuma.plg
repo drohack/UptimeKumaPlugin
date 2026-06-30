@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.06.29">
+  <!ENTITY version   "2026.06.29a">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/uptime-kuma.plg">
   <!ENTITY srcURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
@@ -12,11 +12,17 @@
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;"
-  launch="&launch;" pluginURL="&pluginURL;" min="6.11.0"
+  launch="&launch;" pluginURL="&pluginURL;" min="6.12.0"
   icon="heartbeat"
   support="https://github.com/drohack/UptimeKumaPlugin/issues">
 
 <CHANGES>
+###2026.06.29a
+- Fix: the dashboard widget can now be dragged/reordered like every other tile (#2).
+  It now registers as a native Unraid dashboard tile (via $mytiles) instead of
+  injecting its table into an existing tile, which had locked it to the bottom-right.
+- Requires Unraid 6.12+ for native dashboard tile support (min bumped from 6.11.0).
+
 ###2026.06.29
 - Fix: 1 Hour time period showed no data on servers in a timezone ahead of UTC (#1).
   Heartbeat cutoff is now computed in UTC to match how Uptime Kuma stores timestamps.
