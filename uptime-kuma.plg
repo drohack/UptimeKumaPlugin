@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.06.29a">
+  <!ENTITY version   "2026.07.09">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/uptime-kuma.plg">
   <!ENTITY srcURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
@@ -14,9 +14,24 @@
 <PLUGIN name="&name;" author="&author;" version="&version;"
   launch="&launch;" pluginURL="&pluginURL;" min="6.12.0"
   icon="heartbeat"
-  support="https://github.com/drohack/UptimeKumaPlugin/issues">
+  support="https://forums.unraid.net/topic/198044-plugin-uptime-kuma-monitor-widget-for-unraid-dashboard/">
 
 <CHANGES>
+###2026.07.09
+- New: Uptime Kuma v2 instances using MariaDB are now supported (embedded MariaDB —
+  the option the v2 setup wizard recommends — and external MariaDB). Data is read
+  through the Uptime Kuma container's own database client; the container must be
+  running. Note: Uptime Kuma itself does not support PostgreSQL.
+- New: the Database Path setting has a folder/file picker. Select your Uptime Kuma
+  data folder (recommended) and the database type is detected automatically, or
+  keep pointing at kuma.db directly — existing configs work unchanged.
+- New: optional Container Name setting for MariaDB mode, only needed if the
+  Uptime Kuma container can't be auto-detected.
+- Fix: v2 long time periods (7d-180d) compared the stat tables' integer unix
+  timestamps against a datetime string, piling all history into the first bar
+  and skewing the uptime %. The cutoff is now an epoch value.
+- Fix: the Support link now points to the Unraid forum support thread.
+
 ###2026.06.29a
 - Fix: the dashboard widget can now be dragged/reordered like every other tile (#2).
   It now registers as a native Unraid dashboard tile (via $mytiles) instead of

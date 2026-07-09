@@ -2,7 +2,7 @@
 
 An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/uptime-kuma) monitor statuses directly on the Unraid dashboard with heartbeat bars, uptime percentages, and configurable time periods.
 
-> **Note:** This plugin requires Uptime Kuma to be running as a Docker container on the same Unraid server. It reads the SQLite database directly from the filesystem. Remote Uptime Kuma instances are not supported.
+> **Note:** This plugin requires Uptime Kuma to be running as a Docker container on the same Unraid server. It reads the database in read-only mode — SQLite directly from the filesystem, MariaDB (v2's recommended embedded MariaDB or an external one) through the container's own database client. Remote Uptime Kuma instances are not supported. PostgreSQL is not supported by Uptime Kuma itself.
 
 ![Dashboard Screenshot](src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma/images/screenshot.png)
 
@@ -14,7 +14,9 @@ An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/up
 - Quick link to Uptime Kuma WebUI (auto-detected from Docker template or set manually)
 - Choose which monitors to display via checkbox list in settings
 - Native Unraid dashboard tile — drag to reorder like any other tile — with settings cog, collapse, and external link controls
-- Reads directly from Uptime Kuma's SQLite database — no API keys or background services needed
+- Reads directly from Uptime Kuma's database — no API keys or background services needed
+- Supports **SQLite** and **MariaDB** (embedded or external, auto-detected from your data folder)
+- Built-in folder/file picker for the database path setting
 - Supports both **Uptime Kuma v1.x** and **v2.x** (auto-detected)
 - Down monitors sorted to top
 
@@ -22,10 +24,12 @@ An Unraid plugin that displays your [Uptime Kuma](https://github.com/louislam/up
 
 | Uptime Kuma Version | Support |
 |---------------------|---------|
-| v1.x (1.23.x) | Full support — all periods read from heartbeat table |
-| v2.x (2.2.x+) | Full support — short periods use heartbeat, longer periods use stat_hourly/stat_daily aggregate tables |
+| v1.x (1.23.x) | Full support — all periods read from heartbeat table (SQLite) |
+| v2.x (2.2.x+) | Full support — short periods use heartbeat, longer periods use stat_hourly/stat_daily aggregate tables. SQLite, embedded MariaDB, and external MariaDB backends |
 
-Version is auto-detected from the database. No configuration needed.
+Version and database type are auto-detected. No configuration needed beyond the data folder path. PostgreSQL is not an Uptime Kuma option — if you were looking for the "recommended" database from the v2 setup wizard, that's the embedded MariaDB, which is supported.
+
+**MariaDB note:** the plugin queries MariaDB through the Uptime Kuma container's own `mariadb` client, so monitor data is only readable while the container is running (with SQLite, the widget can still show the last recorded state after the container stops).
 
 ## Prerequisites
 
@@ -53,25 +57,23 @@ Version is auto-detected from the database. No configuration needed.
 
 ## Configuration
 
-### Step 1: Find Your Database Path
+### Step 1: Select Your Data Folder
 
-The plugin needs the path to Uptime Kuma's SQLite database on the Unraid filesystem.
-
-**To find it:**
-1. Go to the **Docker** tab in Unraid
-2. Click on your Uptime Kuma container name
-3. Look at the volume mappings — find the one that maps to `/app/data` inside the container
-4. Your database path is: `<host_path>/kuma.db`
+The plugin needs Uptime Kuma's data folder on the Unraid filesystem — the host folder mapped to `/app/data` inside the container.
 
 **Common paths:**
-- `/mnt/user/appdata/uptimekuma/kuma.db` (default from Community Applications)
-- `/mnt/cache/appdata/uptimekuma/kuma.db` (if using cache drive)
+- `/mnt/user/appdata/uptimekuma/` (default from Community Applications)
+- `/mnt/cache/appdata/uptimekuma/` (if using cache drive)
+
+Click the **Database Path** field to open the built-in folder browser and pick the folder. The database type (SQLite or MariaDB) is detected automatically from the folder contents. Pointing directly at a `kuma.db` file still works too.
+
+If unsure of the path: go to the **Docker** tab, click your Uptime Kuma container, and look at the volume mappings for the one that maps to `/app/data`.
 
 ### Step 2: Configure the Plugin
 
 1. Go to the **Plugins** tab and click the **Uptime Kuma** icon to open settings
-2. Set the **Database Path** to your `kuma.db` file location
-3. Click **Test Connection** to verify — it will show the number of monitors found and the detected Uptime Kuma version (v1 or v2)
+2. Set the **Database Path** to your Uptime Kuma data folder (see Step 1)
+3. Click **Test Connection** to verify — it will show the number of monitors found, the detected Uptime Kuma version (v1 or v2), and the database type
 4. Optionally set the **WebUI URL** or click **Auto-Detect** to find it from your Docker container
 5. Set **Enable Dashboard Widget** to **Enabled**
 6. Select which **Monitors to Display** using the checkboxes (leave all checked to show everything)
@@ -92,7 +94,8 @@ Navigate to the Unraid **Dashboard**. You should see an "Uptime Kuma" tile showi
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Enable Dashboard Widget | Disabled | Show/hide the widget on the dashboard |
-| Database Path | `/mnt/user/appdata/uptimekuma/kuma.db` | Path to Kuma's SQLite database |
+| Database Path | `/mnt/user/appdata/uptimekuma/kuma.db` | Kuma's data folder (auto-detects SQLite/MariaDB) or a kuma.db file |
+| Container Name | (auto-detect) | Advanced — Uptime Kuma container name, only needed for MariaDB when auto-detection fails |
 | WebUI URL | (auto-detected) | URL to open Uptime Kuma's web interface |
 | Refresh Interval | 1 minute | How often the widget refreshes (10s to 10 min) |
 | Default Time Period | 24 Hours | Default period for heartbeat bars and uptime % |
@@ -106,8 +109,15 @@ Navigate to the Unraid **Dashboard**. You should see an "Uptime Kuma" tile showi
 - Verify the volume mapping in your Docker container settings
 
 ### "Not a valid Uptime Kuma database"
-- Make sure the path points to `kuma.db`, not the directory
+- Make sure the path points to your Uptime Kuma data folder (or its `kuma.db` file), not some other app's folder
 - The file may be corrupted — check if Uptime Kuma itself is working
+
+### "Could not find a running Uptime Kuma container" (MariaDB)
+- MariaDB data is read through the Uptime Kuma container, which must be running
+- If auto-detection fails (e.g. unusual container name and volume mapping), set **Container Name** in the plugin settings to your Uptime Kuma Docker container's name
+
+### "Uptime Kuma container is not running" (MariaDB)
+- Unlike SQLite, MariaDB data can only be read while the Uptime Kuma container runs — start the container
 
 ### "Database file not readable"
 - The Unraid webserver needs read access to the file
@@ -141,12 +151,17 @@ Your Uptime Kuma data is never modified — the plugin only reads the database i
 
 ## How It Works
 
-This plugin reads Uptime Kuma's SQLite database file directly from the Unraid filesystem. It auto-detects the Uptime Kuma version and queries the appropriate tables:
+This plugin reads Uptime Kuma's database from the Unraid filesystem. Given the data folder, it detects the backend from Kuma's own `db-config.json`:
+
+- **SQLite** (v1 default, v2 option): `kuma.db` is opened directly in **read-only mode**
+- **Embedded MariaDB** (v2's recommended option) and **external MariaDB**: read-only `SELECT`s run through the Uptime Kuma container's own `mariadb` client via `docker exec` — Unraid's PHP has no MySQL driver, and the embedded MariaDB only listens on a unix socket inside the container
+
+It auto-detects the Uptime Kuma version and queries the appropriate tables:
 
 - **v1.x**: All data comes from the `heartbeat` table
 - **v2.x**: Recent data (1h–24h) from `heartbeat`, weekly/monthly from `stat_hourly`, and longer periods from `stat_daily`
 
-The database is opened in **read-only mode** — the plugin never writes to or modifies Uptime Kuma's data.
+The plugin never writes to or modifies Uptime Kuma's data.
 
 ## License
 

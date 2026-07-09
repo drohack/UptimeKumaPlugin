@@ -18,6 +18,8 @@ $selectedMonitors = array_filter(explode(',', $cfg['MONITORS'] ?? ''));
 ?>
 
 <link rel="stylesheet" href="/plugins/uptime-kuma/css/uptime-kuma.css">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
 
 <div id="uk-settings">
     <div class="title"><span class="left">Uptime Kuma Settings</span></div>
@@ -43,14 +45,28 @@ $selectedMonitors = array_filter(explode(',', $cfg['MONITORS'] ?? ''));
                 <tr>
                     <td>Database Path:</td>
                     <td>
-                        <input type="text" name="DBPATH" value="<?= htmlspecialchars($cfg['DBPATH'] ?? '') ?>"
-                               placeholder="/mnt/user/appdata/uptimekuma/kuma.db" size="60">
+                        <input type="text" name="DBPATH" id="uk-dbpath" value="<?= htmlspecialchars($cfg['DBPATH'] ?? '') ?>"
+                               placeholder="/mnt/user/appdata/uptimekuma/" size="60"
+                               autocomplete="off" spellcheck="false"
+                               data-pickroot="/mnt" data-picktop="/mnt" data-pickfolders="true" data-pickfilter="db">
                         <button type="button" class="uk-btn" onclick="uptimeKumaTestConnection()">Test Connection</button>
                         <span id="uk-test-result"></span>
                         <p class="uk-help-text">
-                            Path to Uptime Kuma's SQLite database file on the Unraid filesystem.<br>
-                            Typically found at <code>/mnt/user/appdata/uptimekuma/kuma.db</code>.<br>
-                            Check your Docker container's volume mappings if unsure.
+                            Select your Uptime Kuma <strong>data folder</strong> (recommended, e.g. <code>/mnt/user/appdata/uptimekuma/</code>)
+                            or the <code>kuma.db</code> file directly.<br>
+                            With a folder, the database type (SQLite or MariaDB) is detected automatically.<br>
+                            It's the host folder mapped to <code>/app/data</code> in your Uptime Kuma Docker container.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Container Name:</td>
+                    <td>
+                        <input type="text" name="CONTAINER" value="<?= htmlspecialchars($cfg['CONTAINER'] ?? '') ?>"
+                               placeholder="(auto-detect)" size="60" autocomplete="off" spellcheck="false">
+                        <p class="uk-help-text">
+                            Advanced — only needed when Uptime Kuma uses MariaDB and the container can't be auto-detected.<br>
+                            Leave blank to auto-detect the Uptime Kuma Docker container.
                         </p>
                     </td>
                 </tr>
@@ -139,14 +155,16 @@ var ukSelectedMonitors = <?= json_encode($selectedMonitors) ?>;
 
 $(function() {
     uptimeKumaLoadMonitors();
+    $('#uk-dbpath').fileTreeAttach();
 });
 
 function uptimeKumaTestConnection() {
     var dbpath = document.querySelector('input[name="DBPATH"]').value;
+    var container = document.querySelector('input[name="CONTAINER"]').value;
     var resultEl = document.getElementById('uk-test-result');
     resultEl.innerHTML = '<span style="color:#ff9800;">Testing...</span>';
 
-    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'test', dbpath: dbpath }, function(data) {
+    $.getJSON('/plugins/uptime-kuma/UptimeKumaData.php', { action: 'test', dbpath: dbpath, container: container }, function(data) {
         if (data.success) {
             resultEl.innerHTML = '<span style="color:#4caf50;">' + escapeHtml(data.message) + '</span>';
             // Reload monitor list after successful connection test
