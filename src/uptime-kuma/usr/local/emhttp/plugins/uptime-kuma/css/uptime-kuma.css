@@ -23,6 +23,18 @@
     appearance: menulist;
 }
 
+/* ---- Settings: file tree picker ---- */
+
+/* fileTreeAttach computes its inline `left` from position() (offset-parent
+ * relative) but applies it with offset() (document relative). That only
+ * agrees on the stock dl/dd settings markup; inside our table cell the
+ * offset parent is the td, so the panel gets shoved to the document's left
+ * edge, over the label column. Cancelling the inline left keeps the panel
+ * in normal flow: directly below the input, left-aligned with it. */
+#uk-settings div.fileTree {
+    left: 0 !important;
+}
+
 /* ---- Monitor List ---- */
 
 #uk-monitors {

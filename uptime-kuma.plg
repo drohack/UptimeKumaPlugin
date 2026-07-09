@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "uptime-kuma">
   <!ENTITY author    "drohack">
-  <!ENTITY version   "2026.07.09">
+  <!ENTITY version   "2026.07.09a">
   <!ENTITY launch    "Settings/UptimeKumaSettings">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/uptime-kuma.plg">
   <!ENTITY srcURL    "https://raw.githubusercontent.com/drohack/UptimeKumaPlugin/main/src/uptime-kuma/usr/local/emhttp/plugins/uptime-kuma">
@@ -17,6 +17,12 @@
   support="https://forums.unraid.net/topic/198044-plugin-uptime-kuma-monitor-widget-for-unraid-dashboard/">
 
 <CHANGES>
+###2026.07.09a
+- Fix: the Database Path folder picker opened shifted to the far left, over the
+  setting label, instead of below the input. (The stock file tree positions
+  itself for Unraid's dl/dd settings markup; inside this page's table layout
+  that lands on the document edge — now pinned below the input.)
+
 ###2026.07.09
 - New: Uptime Kuma v2 instances using MariaDB are now supported (embedded MariaDB —
   the option the v2 setup wizard recommends — and external MariaDB). Data is read
