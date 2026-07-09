@@ -25,14 +25,16 @@
 
 /* ---- Settings: file tree picker ---- */
 
-/* fileTreeAttach computes its inline `left` from position() (offset-parent
- * relative) but applies it with offset() (document relative). That only
- * agrees on the stock dl/dd settings markup; inside our table cell the
- * offset parent is the td, so the panel gets shoved to the document's left
- * edge, over the label column. Cancelling the inline left keeps the panel
- * in normal flow: directly below the input, left-aligned with it. */
+/* The stock webGui renders the picker panel position:absolute and lets
+ * fileTreeAttach compute an inline `left` — coordinates that only line up
+ * on the stock dl/dd settings markup. Inside this page's table cell the
+ * panel lands on the page's left edge, over the label column. Forcing it
+ * back into normal flow keeps it directly below the input, left-aligned
+ * with it (verified live on Unraid 7.x). */
 #uk-settings div.fileTree {
+    position: relative !important;
     left: 0 !important;
+    top: 0 !important;
 }
 
 /* ---- Monitor List ---- */
