@@ -142,6 +142,8 @@ When a new version is available:
 1. Go to **Plugins** > **Installed Plugins**
 2. Check for updates, or remove and reinstall using the same URL
 
+See [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/drohack/UptimeKumaPlugin/releases) page for what changed in each version.
+
 ## Uninstalling
 
 1. Go to **Plugins** > **Installed Plugins** in the Unraid WebGUI
