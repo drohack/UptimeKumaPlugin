@@ -1,0 +1,63 @@
+name: Auto-release on version bump
+
+# When uptime-kuma.plg changes on main, read its version entity. If no release
+# exists for that version yet, create a tag + GitHub Release using that
+# version's entry from the .plg <CHANGES> block as the release notes.
+
+on:
+  push:
+    branches: [main]
+    paths: [uptime-kuma.plg]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version from .plg
+        id: version
+        run: |
+          VERSION=$(grep -oP 'ENTITY version\s+"\K[^"]+' uptime-kuma.plg)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.version }}" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release ${{ steps.version.outputs.version }} already exists — nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract release notes from <CHANGES>
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          awk -v ver="${{ steps.version.outputs.version }}" '
+            $0 == "###" ver {flag=1; next}
+            flag && (/^###/ || /<\/CHANGES>/) {exit}
+            flag {print}
+          ' uptime-kuma.plg > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "No <CHANGES> entry found for ${{ steps.version.outputs.version }} — add one to uptime-kuma.plg." >&2
+            exit 1
+          fi
+          cat release-notes.md
+
+      - name: Create tag and release
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "${{ steps.version.outputs.version }}" \
+            --latest \
+            --notes-file release-notes.md
